@@ -5,7 +5,9 @@
 
 void assigningNewAddress(DWORD* isd, DWORD buf)
 {
+    std::cout << *isd << std::endl;
     if (*isd == 0) {
+        
         return;
     }
     DWORD op;
@@ -41,9 +43,7 @@ void InterceptFunctions(void)
     IMAGE_SECTION_HEADER* ish;
     IMAGE_IMPORT_DESCRIPTOR* iid;
     std:: vector<DWORD*> isd(91,0);  //image_thunk_data dword
-   
-
-
+    int i;
     // Получаем указатели на стандартные структуры данных PE заголовка
     idh = (IMAGE_DOS_HEADER*)pimage;
     ioh = (IMAGE_OPTIONAL_HEADER*)(pimage + idh->e_lfanew
@@ -52,50 +52,52 @@ void InterceptFunctions(void)
     //если не обнаружен магический код, то у этой программы нет PE заголовка
     if (idh->e_magic != 0x5A4D)
     {
+        std::cout << "Not exe hdr" << std::endl;
         return;
     }
 
-    int j;
     //ищем секцию .idata
-    for (j = 0; j < 16; j++)
-        if (strcmp((char*)((ish + j)->Name), ".idata") == 0) break;
-
-    if (j == 16)
+    for (i = 0; i < 16; i++)
+        if (strcmp((char*)((ish + i)->Name), ".idata") == 0) break;
+    if (i == 16)
     {
-        std::cout << "Unable to find.idata section Error! " << std::endl;
+        std::cout << "Unable to find .idata section" << std::endl;
         return;
     }
+
     // Получаем адрес секции .idata(первого элемента IMAGE_IMPORT_DESCRIPTOR)
-    iid = (IMAGE_IMPORT_DESCRIPTOR*)(pimage + (ish + j)->VirtualAddress);
+    iid = (IMAGE_IMPORT_DESCRIPTOR*)(pimage + (ish + i)->VirtualAddress);
 
     // Получаем абсолютный адрес функции для перехвата
-
-    for (int i = 0; i < adr_Reester_Func.size(); i++) {
-        auto temp = (DWORD)GetProcAddress(
-            GetModuleHandle(convertStr("Advapi32.dll")), name_of_func[i]);
-        if (temp == 0)
+    for (int j = 0; j < adr_Reester_Func.size(); j++) {
+        adr_Reester_Func[j] = (DWORD)GetProcAddress(
+            GetModuleHandle(convertStr("Advapi32.dll")), name_of_func[j]);
+        std::cout << adr_Reester_Func[j] << std::endl;
+        if (adr_Reester_Func[j] == 0)
         {
-            std::cout << "Can`t get adr, Error!" << std::endl;
+            std::cout << "Can`t get addr_MessageBoxA" << std::endl;
         }
         else {
-            adr_Reester_Func[i]=temp;
-
-
             // В таблице импорта ищем соответствующий элемент для 
-            // библиотеки user32.dll
+        // библиотеки user32.dll
             while (iid->Name)  //до тех пор пока поле структуры не содержит 0
             {
-                if (strcmp((char*)(pimage + iid->Name), "Advapi32.dll") == 0) break;
+                if (_strcmpi((char*)(pimage + iid->Name), "ADVAPI32.dll") == 0) break;
                 iid++;
             }
 
             // Ищем в IMAGE_THUNK_DATA нужный адрес
-            isd[i]=(DWORD*)(pimage + iid->FirstThunk);
-            while (*isd[i] != adr_Reester_Func[i] && *isd[i] != 0)  isd[i]++;
-
-          
+            isd[j] = (DWORD*)(pimage + iid->FirstThunk);
+            while (*isd[j] != adr_Reester_Func[j] && *isd[j] != 0)  isd[j]++;
+            if (*isd[j] == 0)
+            {
+                std::cout <<name_of_func[j]<< " not found in .idata" << std::endl;
+                return;
+            }
         }
+        
     }
+   
 
 
 
@@ -1395,6 +1397,8 @@ LPWSTR convertStr(LPCSTR pInStr)
 	return LPWSTR(pwstr);
 }
 void WriteInfoInFile(const char* firstParam, char* discription) {
+
+    std::cout << firstParam << discription << std::endl;
     std::ofstream outFile(fileName, std::ios::app);
     if (outFile.is_open())
     {
@@ -1404,6 +1408,7 @@ void WriteInfoInFile(const char* firstParam, char* discription) {
 
 }
 void WriteInfoInFile(const char* firstParam, LPWSTR discription) {
+    std::cout << firstParam << discription << std::endl;
     std::ofstream outFile(fileName, std::ios::app);
     if (outFile.is_open())
     {
@@ -1413,6 +1418,7 @@ void WriteInfoInFile(const char* firstParam, LPWSTR discription) {
 
 }
 void WriteInfoInFile(const char* firstParam, HKEY discription) {
+    std::cout << firstParam << discription << std::endl;
     std::ofstream outFile(fileName, std::ios::app);
     if (outFile.is_open())
     {
@@ -1422,6 +1428,7 @@ void WriteInfoInFile(const char* firstParam, HKEY discription) {
 
 }
 void WriteInfoInFile(const char* firstParam, LPCSTR discription) {
+    std::cout << firstParam << discription << std::endl;
     std::ofstream outFile(fileName, std::ios::app);
     if (outFile.is_open())
     {
@@ -1431,6 +1438,7 @@ void WriteInfoInFile(const char* firstParam, LPCSTR discription) {
 
 }
 void WriteInfoInFile(const char* firstParam, LPCWSTR discription) {
+    std::cout << firstParam << discription << std::endl;
     std::ofstream outFile(fileName, std::ios::app);
     if (outFile.is_open())
     {

@@ -8,7 +8,7 @@
 
 std::vector <DWORD> adr_Reester_Func(91,0);
 
-char* fileName = new char[] {"result.txt"};
+char* fileName = new char[] {"C:\\result.txt"};
 
 LPWSTR convertStr(LPCSTR pInStr);
 void assigningNewAddress(DWORD* isd, DWORD buf);
