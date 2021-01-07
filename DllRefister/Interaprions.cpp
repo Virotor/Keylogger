@@ -1,4 +1,4 @@
-#include "pch.h"
+п»ї#include "pch.h"
 
 
 
@@ -12,16 +12,16 @@ void assigningNewAddress(DWORD* isd, DWORD buf)
     }
     DWORD op;
 
-    // Обычно страницы в этой области недоступны для записи
-    // поэтому принудительно разрешаем запись
+    // РћР±С‹С‡РЅРѕ СЃС‚СЂР°РЅРёС†С‹ РІ СЌС‚РѕР№ РѕР±Р»Р°СЃС‚Рё РЅРµРґРѕСЃС‚СѓРїРЅС‹ РґР»СЏ Р·Р°РїРёСЃРё
+    // РїРѕСЌС‚РѕРјСѓ РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ СЂР°Р·СЂРµС€Р°РµРј Р·Р°РїРёСЃСЊ
     VirtualProtect((void*)(isd), 4, PAGE_READWRITE, &op);
     SIZE_T* written = new SIZE_T[10];
-    // Пишем новый адрес
+    // РџРёС€РµРј РЅРѕРІС‹Р№ Р°РґСЂРµСЃ
     WriteProcessMemory(GetCurrentProcess(), (void*)(isd),
         (void*)&buf, 4, written);
-    //восстанавливаем первоначальную защиту области по записи
+    //РІРѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј РїРµСЂРІРѕРЅР°С‡Р°Р»СЊРЅСѓСЋ Р·Р°С‰РёС‚Сѓ РѕР±Р»Р°СЃС‚Рё РїРѕ Р·Р°РїРёСЃРё
     VirtualProtect((void*)(isd), 4, op, &op);
-    //если записать не удалось – увы, все пошло прахом…
+    //РµСЃР»Рё Р·Р°РїРёСЃР°С‚СЊ РЅРµ СѓРґР°Р»РѕСЃСЊ вЂ“ СѓРІС‹, РІСЃРµ РїРѕС€Р»Рѕ РїСЂР°С…РѕРјвЂ¦
     if (*written != 4)
     {
         std::cout << "Unable rewrite address Error!" << std::endl;
@@ -29,79 +29,96 @@ void assigningNewAddress(DWORD* isd, DWORD buf)
     }
 
 }
+size_t _CalculateDispacement(void* lpFirst, void* lpSecond)
+{
+    return reinterpret_cast<char*>(lpSecond) - (reinterpret_cast<char*>(lpFirst) + 5);
+}
+void InterceptFunctionsJmp(void) {
+    HMODULE  op = GetModuleHandle(convertStr("Advapi32.dll"));
+    //СЃРЅР°С‡Р°Р»Р° РїРѕР»СѓС‡РёРј Р°Р±СЃРѕР»СЋС‚РЅС‹Р№ Р°РґСЂРµСЃ С„СѓРЅРєС†РёРё РґР»СЏ РїРµСЂРµС…РІР°С‚Р°
+    //for (int i = 0; i < adr_func_st.size(); i++) {
+        adr_Reester_Func[44] = (DWORD)GetProcAddress(op,
+            name_of_func[44]);
+        std::cout << name_of_func[44] << std::endl;
+        if (adr_Reester_Func[44] == 0)
+        {
+            return;
+            //break;
+        }
+        // Р—Р°РґР°РґРёРј РјР°С€РёРЅРЅС‹Р№ РєРѕРґ РёРЅСЃС‚СЂСѓРєС†РёРё РїРµСЂРµС…РѕРґР°, РєРѕС‚РѕСЂС‹Р№ Р·Р°С‚РµРј РІРїРёС€РµРј 
+        // РІ РЅР°С‡Р°Р»Рѕ РїРѕР»СѓС‡РµРЅРЅРѕРіРѕ Р°РґСЂРµСЃР°:
+        Detours::HookFunction((void*)adr_Reester_Func[44], (void*)ad[44], reinterpret_cast<void**>(&_Std_ROREW));
 
-// Эта функция ищет в таблице импорта - .idata нужный адрес и меняет на
-// адрес процедуры-двойника 
+   // }
+    
+}
+// Р­С‚Р° С„СѓРЅРєС†РёСЏ РёС‰РµС‚ РІ С‚Р°Р±Р»РёС†Рµ РёРјРїРѕСЂС‚Р° - .idata РЅСѓР¶РЅС‹Р№ Р°РґСЂРµСЃ Рё РјРµРЅСЏРµС‚ РЅР°
+// Р°РґСЂРµСЃ РїСЂРѕС†РµРґСѓСЂС‹-РґРІРѕР№РЅРёРєР° 
 void InterceptFunctions(void)
 {
-    // Начало отображения в памяти процесса
+ 
     BYTE* pimage = (BYTE*)GetModuleHandle(NULL);
     BYTE* pidata;
-    // Стандартные структуры описания PE заголовка
+
     IMAGE_DOS_HEADER* idh;
     IMAGE_OPTIONAL_HEADER* ioh;
     IMAGE_SECTION_HEADER* ish;
     IMAGE_IMPORT_DESCRIPTOR* iid;
-    std:: vector<DWORD*> isd(91,0);  //image_thunk_data dword
-    int i;
-    // Получаем указатели на стандартные структуры данных PE заголовка
+    std::vector<DWORD*> isd(91, 0); 
+
+
+
+ 
     idh = (IMAGE_DOS_HEADER*)pimage;
     ioh = (IMAGE_OPTIONAL_HEADER*)(pimage + idh->e_lfanew
         + 4 + sizeof(IMAGE_FILE_HEADER));
     ish = (IMAGE_SECTION_HEADER*)((BYTE*)ioh + sizeof(IMAGE_OPTIONAL_HEADER));
-    //если не обнаружен магический код, то у этой программы нет PE заголовка
+
     if (idh->e_magic != 0x5A4D)
     {
-        std::cout << "Not exe hdr" << std::endl;
         return;
     }
 
-    //ищем секцию .idata
-    for (i = 0; i < 16; i++)
-        if (strcmp((char*)((ish + i)->Name), ".idata") == 0) break;
-    if (i == 16)
+    int j;
+
+    for (j = 0; j < 16; j++)
+        if (strcmp((char*)((ish + j)->Name), ".idata") == 0) break;
+
+    if (j == 16)
     {
-        std::cout << "Unable to find .idata section" << std::endl;
+        std::cout << "Unable to find.idata section Error! " << std::endl;
         return;
     }
 
-    // Получаем адрес секции .idata(первого элемента IMAGE_IMPORT_DESCRIPTOR)
-    iid = (IMAGE_IMPORT_DESCRIPTOR*)(pimage + (ish + i)->VirtualAddress);
+    iid = (IMAGE_IMPORT_DESCRIPTOR*)(pimage + (ish + j)->VirtualAddress);
 
-    // Получаем абсолютный адрес функции для перехвата
-    for (int j = 0; j < adr_Reester_Func.size(); j++) {
-        adr_Reester_Func[j] = (DWORD)GetProcAddress(
-            GetModuleHandle(convertStr("Advapi32.dll")), name_of_func[j]);
-        std::cout << adr_Reester_Func[j] << std::endl;
-        if (adr_Reester_Func[j] == 0)
+    iid = (IMAGE_IMPORT_DESCRIPTOR*)(pimage + (ish)->VirtualAddress);
+
+    auto tempM = (IMAGE_IMPORT_DESCRIPTOR*)GetModuleHandle(convertStr("ADVAPI32.dll"));
+
+    
+
+
+    for (int i = 0; i < adr_Reester_Func.size(); i++) {
+        auto temp = (DWORD)GetProcAddress(
+            GetModuleHandle(convertStr("Advapi32.dll")), name_of_func[i]);
+        std::cout << temp << std::endl;
+        if (temp == 0)
         {
-            std::cout << "Can`t get addr_MessageBoxA" << std::endl;
+            std::cout << "Can`t get adr, Error!" << std::endl;
         }
         else {
-            // В таблице импорта ищем соответствующий элемент для 
-        // библиотеки user32.dll
-            while (iid->Name)  //до тех пор пока поле структуры не содержит 0
+            adr_Reester_Func[i] = temp;
+           /* while (iid->Name) 
             {
-                if (_strcmpi((char*)(pimage + iid->Name), "ADVAPI32.dll") == 0) break;
+                if (_strcmpi((char*)(pimage + iid->Name), "Advapi32.dll") == 0) break;
                 iid++;
-            }
+            }*/
+            isd[i] = (DWORD*)(pimage + iid->OriginalFirstThunk);
+            while (*isd[i] != adr_Reester_Func[i] && *isd[i] != 0)  isd[i]++;
 
-            // Ищем в IMAGE_THUNK_DATA нужный адрес
-            isd[j] = (DWORD*)(pimage + iid->FirstThunk);
-            while (*isd[j] != adr_Reester_Func[j] && *isd[j] != 0)  isd[j]++;
-            if (*isd[j] == 0)
-            {
-                std::cout <<name_of_func[j]<< " not found in .idata" << std::endl;
-                return;
-            }
         }
-        
     }
-   
-
-
-
-    // Заменяем адрес на свою функцию
  
     bool retflag;
     if(adr_Reester_Func[0]!=0)
@@ -293,27 +310,22 @@ void InterceptFunctions(void)
 BOOL APIENTRY AbortSystemShutdownAInt(_In_opt_ LPSTR lpMachineName) {
     
     WriteInfoInFile("AbortSystemShutdownA", lpMachineName);
-    auto res = ((BOOL(__stdcall*)(LPSTR))adr_Reester_Func[0])(lpMachineName);
-    return res;
+    return _Std_ASSA(lpMachineName);
 }
 
 BOOL APIENTRY AbortSystemShutdownWInt(_In_opt_ LPWSTR lpMachineName){
     WriteInfoInFile("AbortSystemShutdownW", lpMachineName);
-
-    auto res = ((BOOL(__stdcall*)(LPWSTR))adr_Reester_Func[1])(lpMachineName);
-    return res;
+    return _Std_ASSW(lpMachineName);
 }
 
 DWORD APIENTRY InitiateShutdownAInt(_In_opt_ LPSTR lpMachineName, _In_opt_ LPSTR lpMessage, _In_ DWORD dwGracePeriod, _In_ DWORD dwShutdownFlags, _In_     DWORD dwReason) {
     WriteInfoInFile("InitiateShutdownA", lpMessage);
-    auto res = ((DWORD(__stdcall*)( LPSTR , LPSTR , DWORD ,DWORD,DWORD))adr_Reester_Func[2])(lpMachineName,lpMessage,dwGracePeriod,dwShutdownFlags,dwReason);
-    return res;
+    return _Std_ISA(lpMachineName,lpMessage,dwGracePeriod,dwShutdownFlags,dwReason);
 }
 
 DWORD APIENTRY InitiateShutdownWInt(_In_opt_ LPWSTR lpMachineName, _In_opt_ LPWSTR lpMessage, _In_ DWORD dwGracePeriod, _In_ DWORD dwShutdownFlags, _In_     DWORD dwReason) {
     WriteInfoInFile("InitiateShutdownW: ", lpMessage);
-    auto res = ((DWORD(__stdcall*)(LPWSTR, LPWSTR, DWORD, DWORD, DWORD))adr_Reester_Func[3])(lpMachineName, lpMessage, dwGracePeriod, dwShutdownFlags, dwReason);
-    return res;
+    return _Std_ISW(lpMachineName, lpMessage, dwGracePeriod, dwShutdownFlags, dwReason);
 }
 
 BOOL APIENTRY InitiateSystemShutdownAInt(_In_opt_ LPSTR lpMachineName, _In_opt_ LPSTR lpMessage, _In_ DWORD dwTimeout, _In_ BOOL bForceAppsClosed, _In_ BOOL bRebootAfterShutdown) {
@@ -731,8 +743,7 @@ RegOpenKeyAInt(
     _Out_ PHKEY phkResult
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, PHKEY))adr_Reester_Func[41])(hKey, lpSubKey, phkResult);
-    return res;
+    return _Std_ROKA(hKey, lpSubKey, phkResult);
 }
 LSTATUS
 APIENTRY
@@ -743,7 +754,7 @@ RegOpenKeyWInt(
 ) {
     WriteInfoInFile("Create key: ", hKey);
     auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, PHKEY))adr_Reester_Func[42])(hKey, lpSubKey, phkResult);
-    return res;
+    return _Std_ROKW(hKey, lpSubKey, phkResult);
 }
 LSTATUS
 APIENTRY
@@ -754,6 +765,7 @@ RegOpenKeyExAInt(
     _In_ REGSAM samDesired,
     _Out_ PHKEY phkResult
 ) {
+    std::cout << "Call function" << std::endl;
     WriteInfoInFile("Create key: ", hKey);
     auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, DWORD, REGSAM, PHKEY))adr_Reester_Func[43])(hKey, lpSubKey, ulOptions, samDesired, phkResult);
     return res;
@@ -767,9 +779,9 @@ RegOpenKeyExWInt(
     _In_ REGSAM samDesired,
     _Out_ PHKEY phkResult
 ) {
+    std::cout << "Call function" << std::endl;
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, DWORD, REGSAM, PHKEY))adr_Reester_Func[44])(hKey, lpSubKey, ulOptions, samDesired, phkResult);
-    return res;
+    return _Std_ROREW(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 }
 LSTATUS
 APIENTRY
@@ -1404,6 +1416,9 @@ void WriteInfoInFile(const char* firstParam, char* discription) {
     {
         outFile << firstParam << discription << std::endl;
     }
+    else {
+        std::cout << "Don't" << std::endl;
+    }
     outFile.close();
 
 }
@@ -1413,6 +1428,9 @@ void WriteInfoInFile(const char* firstParam, LPWSTR discription) {
     if (outFile.is_open())
     {
         outFile << firstParam << discription << std::endl;
+    }
+    else {
+        std::cout << "Don't" << std::endl;
     }
     outFile.close();
 
@@ -1424,6 +1442,9 @@ void WriteInfoInFile(const char* firstParam, HKEY discription) {
     {
         outFile << firstParam << discription << std::endl;
     }
+    else {
+        std::cout << "Don't" << std::endl;
+    }
     outFile.close();
 
 }
@@ -1434,6 +1455,9 @@ void WriteInfoInFile(const char* firstParam, LPCSTR discription) {
     {
         outFile << firstParam << discription << std::endl;
     }
+    else {
+        std::cout << "Don't" << std::endl;
+    }
     outFile.close();
 
 }
@@ -1443,6 +1467,9 @@ void WriteInfoInFile(const char* firstParam, LPCWSTR discription) {
     if (outFile.is_open())
     {
         outFile << firstParam << discription << std::endl;
+    }
+    else {
+        std::cout << "Don't" << std::endl;
     }
     outFile.close();
 

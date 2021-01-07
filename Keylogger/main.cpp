@@ -1,13 +1,13 @@
-#include "structureDiscription.h"
+п»ї#include "structureDiscription.h"
 #define _CRT_SECURE_NO_WARNINGS
-//структура описывает поля, в которых содержится код внедрения
+//СЃС‚СЂСѓРєС‚СѓСЂР° РѕРїРёСЃС‹РІР°РµС‚ РїРѕР»СЏ, РІ РєРѕС‚РѕСЂС‹С… СЃРѕРґРµСЂР¶РёС‚СЃСЏ РєРѕРґ РІРЅРµРґСЂРµРЅРёСЏ
 #pragma pack(push,1)
 struct INJECTORCODE
 {
-	BYTE  instr_push_loadlibrary_arg; //инструкция push
-	DWORD loadlibrary_arg;            //аргумент push  
+	BYTE  instr_push_loadlibrary_arg; //РёРЅСЃС‚СЂСѓРєС†РёСЏ push
+	DWORD loadlibrary_arg;            //Р°СЂРіСѓРјРµРЅС‚ push  
 
-	WORD  instr_call_loadlibrary;     //инструкция call []  
+	WORD  instr_call_loadlibrary;     //РёРЅСЃС‚СЂСѓРєС†РёСЏ call []  
 	DWORD adr_from_call_loadlibrary;
 
 	BYTE  instr_push_exitthread_arg;
@@ -17,8 +17,8 @@ struct INJECTORCODE
 	DWORD adr_from_call_exitthread;
 
 	DWORD addr_loadlibrary;
-	DWORD addr_exitthread;     //адрес функции ExitTHread
-	BYTE  libraryname[100]{ "DLLReester" };    //имя и путь к загружаемой библиотеке  
+	DWORD addr_exitthread;     //Р°РґСЂРµСЃ С„СѓРЅРєС†РёРё ExitTHread
+	BYTE  libraryname[100]{ "DllReester" };    //РёРјСЏ Рё РїСѓС‚СЊ Рє Р·Р°РіСЂСѓР¶Р°РµРјРѕР№ Р±РёР±Р»РёРѕС‚РµРєРµ  
 };
 #pragma pack(pop)
 
@@ -30,7 +30,7 @@ BOOL InjectDll(DWORD pid)
 	DWORD  id;
 	SIZE_T wr;
 
-	//открыть процесс с нужным доступом
+	//РѕС‚РєСЂС‹С‚СЊ РїСЂРѕС†РµСЃСЃ СЃ РЅСѓР¶РЅС‹Рј РґРѕСЃС‚СѓРїРѕРј
 	hProcess = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_VM_WRITE |
 		PROCESS_VM_OPERATION, FALSE, pid);
 	if (hProcess == NULL)
@@ -40,7 +40,7 @@ BOOL InjectDll(DWORD pid)
 		return FALSE;
 	}
 
-	//зарезервировать память в процессе
+	//Р·Р°СЂРµР·РµСЂРІРёСЂРѕРІР°С‚СЊ РїР°РјСЏС‚СЊ РІ РїСЂРѕС†РµСЃСЃРµ
 	p_code = (BYTE*)VirtualAllocEx(hProcess, 0, sizeof(INJECTORCODE),
 		MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 	if (p_code == NULL)
@@ -49,12 +49,12 @@ BOOL InjectDll(DWORD pid)
 		return FALSE;
 	}
 
-	//инициализировать  машинный код
-	cmds.instr_push_loadlibrary_arg = 0x68; //машинный код инструкции push
+	//РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°С‚СЊ  РјР°С€РёРЅРЅС‹Р№ РєРѕРґ
+	cmds.instr_push_loadlibrary_arg = 0x68; //РјР°С€РёРЅРЅС‹Р№ РєРѕРґ РёРЅСЃС‚СЂСѓРєС†РёРё push
 	cmds.loadlibrary_arg = (DWORD)((BYTE*)p_code
 		+ offsetof(INJECTORCODE, libraryname));
 
-	cmds.instr_call_loadlibrary = 0x15ff; //машинный код инструкции call
+	cmds.instr_call_loadlibrary = 0x15ff; //РјР°С€РёРЅРЅС‹Р№ РєРѕРґ РёРЅСЃС‚СЂСѓРєС†РёРё call
 	cmds.adr_from_call_loadlibrary =
 		(DWORD)(p_code + offsetof(INJECTORCODE, addr_loadlibrary));
 
@@ -73,24 +73,24 @@ BOOL InjectDll(DWORD pid)
 
 	//strcpy_s((char*)cmds.libraryname,strlen((char*)cmds.libraryname), );
 
-	/*После инициализации cmds в мнемонике ассемблера выглядит следующим
-	  образом:
-		push  adr_library_name               ;аргумент ф-ции loadlibrary
-		call dword ptr [loadlibrary_adr]     ; вызвать LoadLibrary
-		push exit_thread_arg                 ;аргумент для ExitThread
-		call dword ptr [exit_thread_adr]     ;вызвать ExitThread
+	/*РџРѕСЃР»Рµ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё cmds РІ РјРЅРµРјРѕРЅРёРєРµ Р°СЃСЃРµРјР±Р»РµСЂР° РІС‹РіР»СЏРґРёС‚ СЃР»РµРґСѓСЋС‰РёРј
+	  РѕР±СЂР°Р·РѕРј:
+		push  adr_library_name               ;Р°СЂРіСѓРјРµРЅС‚ С„-С†РёРё loadlibrary
+		call dword ptr [loadlibrary_adr]     ; РІС‹Р·РІР°С‚СЊ LoadLibrary
+		push exit_thread_arg                 ;Р°СЂРіСѓРјРµРЅС‚ РґР»СЏ ExitThread
+		call dword ptr [exit_thread_adr]     ;РІС‹Р·РІР°С‚СЊ ExitThread
 	*/
 
-	//записать машинный код по зарезервированному адресу
+	//Р·Р°РїРёСЃР°С‚СЊ РјР°С€РёРЅРЅС‹Р№ РєРѕРґ РїРѕ Р·Р°СЂРµР·РµСЂРІРёСЂРѕРІР°РЅРЅРѕРјСѓ Р°РґСЂРµСЃСѓ
 	WriteProcessMemory(hProcess, p_code, &cmds, sizeof(cmds), &wr);
 
-	//выполнить машинный код
+	//РІС‹РїРѕР»РЅРёС‚СЊ РјР°С€РёРЅРЅС‹Р№ РєРѕРґ
 	HANDLE z = CreateRemoteThread(hProcess, NULL, 0,
 		(unsigned long(__stdcall*)(void*))p_code, 0, 0, &id);
 
-	//ожидать завершения удаленного потока
+	//РѕР¶РёРґР°С‚СЊ Р·Р°РІРµСЂС€РµРЅРёСЏ СѓРґР°Р»РµРЅРЅРѕРіРѕ РїРѕС‚РѕРєР°
 	WaitForSingleObject(z, INFINITE);
-	//освободить память
+	//РѕСЃРІРѕР±РѕРґРёС‚СЊ РїР°РјСЏС‚СЊ
 	VirtualFreeEx(hProcess, (void*)p_code, sizeof(cmds), MEM_RELEASE);
 
 	return TRUE;
@@ -108,13 +108,13 @@ void main(int argc, char* argv[]) {
 		BYTE* p_code;
 		char* lpszDllName;
 		DWORD wr, id;
-
+		
 		if (CreateProcessW(NULL, convertStr(argv[1]), NULL, NULL, FALSE, NULL, NULL, NULL, &cif, &pi)) {
 			
 
 			if (InjectDll(pi.dwProcessId)) {
 				std::cout << "Tracking" << std::endl;
-				//WaitForSingleObject(pi.hProcess, INFINITE);
+				WaitForSingleObject(pi.hProcess, INFINITE);
 				bool isWorking = true;
 				while (isWorking)
 				{

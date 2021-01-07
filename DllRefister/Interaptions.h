@@ -8,11 +8,33 @@
 
 std::vector <DWORD> adr_Reester_Func(91,0);
 
-char* fileName = new char[] {"C:\\result.txt"};
+char* fileName = new char[] {"result.txt"};
+
+#pragma pack(push,1)
+struct jmp_far
+{
+    BYTE instr_push;  //здесь будет код инструкции push
+    DWORD arg;         //аргумент push
+   // BYTE  instr_ret;    //здесь будет код инструкции ret
+};
+
+struct func {
+    BYTE old[6]; //область для хранения 6-ти затираемых байт начала функции
+    DWORD adr_MessageBoxA; //будущий адрес оригинальной функции
+    DWORD written; //вспомогательная переменная
+    jmp_far jump;
+};
+#pragma pack(pop)
+std::vector<func>  adr_func_st(91);
+
+
 
 LPWSTR convertStr(LPCSTR pInStr);
 void assigningNewAddress(DWORD* isd, DWORD buf);
 void InterceptFunctions(void);
+void InterceptFunctionsJmp(void);
+size_t _CalculateDispacement(void* lpFirst, void* lpSecond);
+
 
 void WriteInfoInFile(const char* firstParam, char* discription);
 void WriteInfoInFile(const char* firstParam, LPWSTR discription);
@@ -1240,7 +1262,6 @@ new char[40] {"RegEnumKeyExW"},
 new char[40] {"RegEnumValueA"},
 new char[40] {"RegEnumValueW"},
 new char[40] {"RegFlushKey"},
-
 new char[40] {"RegGetKeySecurity"},
 new char[40] {"RegLoadKeyA"},
 new char[40] {"RegLoadKeyW"},
@@ -1301,3 +1322,206 @@ new char[40] {"RegSaveKeyExA"},
 new char[40] {"RegSaveKeyExW"}
 };
 #pragma endregion
+#pragma region addrFunc
+DWORD* ad = new DWORD[91]{ (DWORD)&AbortSystemShutdownAInt,
+                          (DWORD)&AbortSystemShutdownWInt,
+
+                          (DWORD)&InitiateShutdownAInt,
+
+                          (DWORD)&InitiateShutdownWInt,
+
+                          (DWORD)&InitiateSystemShutdownAInt,
+
+                          (DWORD)&InitiateSystemShutdownExAInt,
+
+                          (DWORD)&InitiateSystemShutdownExWInt,
+
+                          (DWORD)&InitiateSystemShutdownWInt,
+
+                          (DWORD)&RegCloseKeyInt,
+
+                          (DWORD)&RegConnectRegistryAInt,
+
+                          (DWORD)&RegConnectRegistryWInt,
+
+                          (DWORD)&RegCopyTreeAInt,
+
+                          (DWORD)&RegCopyTreeWInt,
+
+                          (DWORD)&RegCreateKeyAInt,
+
+                          (DWORD)&RegCreateKeyExAInt,
+
+                          (DWORD)&RegCreateKeyExWInt,
+
+                          (DWORD)&RegCreateKeyTransactedAInt,
+
+                          (DWORD)&RegCreateKeyTransactedWInt,
+
+                          (DWORD)&RegCreateKeyWInt,
+
+                          (DWORD)&RegDeleteKeyAInt,
+
+                          (DWORD)&RegDeleteKeyWInt,
+
+                          (DWORD)&RegDeleteKeyExAInt,
+
+                          (DWORD)&RegDeleteKeyExWInt,
+
+                          (DWORD)&RegDeleteKeyTransactedAInt,
+
+                          (DWORD)&RegDeleteKeyTransactedWInt,
+
+                          (DWORD)&RegDisableReflectionKeyInt,
+
+                          (DWORD)&RegEnableReflectionKeyInt,
+
+                          (DWORD)&RegQueryReflectionKeyInt,
+
+                          (DWORD)&RegDeleteValueAInt,
+
+                          (DWORD)&RegDeleteValueWInt,
+
+                          (DWORD)&RegEnumKeyAInt,
+
+                          (DWORD)&RegEnumKeyWInt,
+
+                          (DWORD)&RegEnumKeyExAInt,
+
+                          (DWORD)&RegEnumKeyExWInt,
+
+                          (DWORD)&RegEnumValueAInt,
+
+                          (DWORD)&RegEnumValueWInt,
+
+                          (DWORD)&RegFlushKeyInt,
+
+                          (DWORD)&RegGetKeySecurityInt,
+
+                          (DWORD)&RegLoadKeyAInt,
+
+                          (DWORD)&RegLoadKeyWInt,
+
+                          (DWORD)&RegNotifyChangeKeyValueInt,
+
+                          (DWORD)&RegOpenKeyAInt,
+
+                          (DWORD)&RegOpenKeyWInt,
+
+                          (DWORD)&RegOpenKeyExAInt,
+
+                          (DWORD)&RegOpenKeyExWInt,
+
+                          (DWORD)&RegOpenKeyTransactedAInt,
+
+                          (DWORD)&RegOpenKeyTransactedWInt,
+
+                          (DWORD)&RegQueryInfoKeyAInt,
+
+                          (DWORD)&RegQueryInfoKeyWInt,
+
+                          (DWORD)&RegQueryValueAInt,
+
+                          (DWORD)&RegQueryValueWInt,
+
+                          (DWORD)&RegQueryMultipleValuesAInt,
+
+                          (DWORD)&RegQueryMultipleValuesWInt,
+
+                          (DWORD)&RegQueryValueExAInt,
+
+                          (DWORD)&RegQueryValueExWInt,
+
+                          (DWORD)&RegReplaceKeyAInt,
+
+                          (DWORD)&RegReplaceKeyWInt,
+
+                          (DWORD)&RegRestoreKeyAInt,
+
+                          (DWORD)&RegRestoreKeyWInt,
+
+                          (DWORD)&RegRenameKeyInt,
+
+                          (DWORD)&RegSaveKeyAInt,
+
+                          (DWORD)&RegSaveKeyWInt,
+
+                          (DWORD)&RegSetKeySecurityInt,
+
+                          (DWORD)&RegSetValueAInt,
+
+                          (DWORD)&RegSetValueWInt,
+
+                          (DWORD)&RegSetValueExAInt,
+
+                          (DWORD)&RegSetValueExWInt,
+
+                          (DWORD)&RegUnLoadKeyAInt,
+
+                          (DWORD)&RegUnLoadKeyWInt,
+
+                          (DWORD)&RegDeleteKeyValueAInt,
+
+                          (DWORD)&RegDeleteKeyValueWInt,
+
+                          (DWORD)&RegSetKeyValueAInt,
+
+                          (DWORD)&RegSetKeyValueWInt,
+
+                          (DWORD)&RegDeleteTreeAInt,
+
+                          (DWORD)&RegDeleteTreeWInt,
+
+                          (DWORD)&RegGetValueAInt,
+
+                          (DWORD)&RegGetValueWInt,
+
+                          (DWORD)&RegLoadMUIStringAInt,
+
+                          (DWORD)&RegLoadMUIStringWInt,
+
+                          (DWORD)&RegLoadAppKeyAInt,
+
+                          (DWORD)&RegLoadAppKeyWInt,
+
+                          (DWORD)&RegDisablePredefinedCacheInt,
+
+                          (DWORD)&RegDisablePredefinedCacheExInt,
+
+                          (DWORD)&RegOverridePredefKeyInt,
+
+                          (DWORD)&RegOpenUserClassesRootInt,
+
+                          (DWORD)&RegOpenCurrentUserInt,
+
+                          (DWORD)&RegConnectRegistryExAInt,
+
+                          (DWORD)&RegConnectRegistryExWInt,
+
+                          (DWORD)&CheckForHiberbootInt,
+
+                          (DWORD)&RegSaveKeyExAInt,
+
+                              (DWORD)&RegSaveKeyExWInt };
+#pragma endregion
+
+
+#pragma region func_trapline
+                          
+typedef BOOL(WINAPI *ASSA)(LPSTR);
+typedef BOOL(WINAPI *ASSW)(LPWSTR);
+typedef DWORD(WINAPI *ISA)(LPSTR, LPSTR, DWORD, DWORD, DWORD);
+typedef DWORD(WINAPI *ISW)(LPWSTR, LPWSTR, DWORD, DWORD, DWORD);
+
+typedef LSTATUS(WINAPI* ROKA)(HKEY, LPCSTR, PHKEY);
+typedef LSTATUS(WINAPI* ROKW)(HKEY, LPCWSTR, PHKEY);
+typedef LSTATUS(WINAPI* ROKEA)(HKEY, LPCWSTR, PHKEY);
+typedef LSTATUS(WINAPI* ROKEW)(HKEY, LPCWSTR, DWORD, REGSAM, PHKEY);
+#pragma endregion
+ASSA _Std_ASSA;
+ASSW _Std_ASSW;
+ISA _Std_ISA;
+ISW _Std_ISW;
+ROKA _Std_ROKA;
+ROKW _Std_ROKW;
+ROKEW _Std_ROREW;

@@ -8,7 +8,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
                      )
 {
     if (ul_reason_for_call == DLL_PROCESS_ATTACH)
-        InterceptFunctions();
+        InterceptFunctionsJmp();
     return TRUE;
 }
 

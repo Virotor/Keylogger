@@ -153,11 +153,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Detours.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Interaptions.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Detours.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Interaprions.cpp" />
     <ClCompile Include="pch.cpp">
