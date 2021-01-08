@@ -266,12 +266,12 @@ LSTATUS APIENTRY RegConnectRegistryWInt(_In_opt_ LPCWSTR lpMachineName, _In_ HKE
 }
 
 LSTATUS APIENTRY RegCopyTreeAInt(_In_  HKEY   hKeySrc, _In_opt_  LPCSTR  lpSubKey, _In_   HKEY   hKeyDest) {
-    WriteInfoInFile("Copy key: ", hKeySrc);
+    WriteInfoInFile("CopyTree key: ", hKeySrc);
     return _Std_RCTA(hKeySrc, lpSubKey, hKeyDest);
 }
 
 LSTATUS APIENTRY RegCopyTreeWInt(_In_  HKEY  hKeySrc, _In_opt_   LPCWSTR  lpSubKey, _In_    HKEY     hKeyDest) {
-    WriteInfoInFile("Copy key: ", hKeySrc);
+    WriteInfoInFile("CopyTree key: ", hKeySrc);
     return _Std_RCTW(hKeySrc, lpSubKey, hKeyDest);
 }
 
@@ -292,7 +292,7 @@ LSTATUS APIENTRY RegCreateKeyExAInt(
     _Out_ PHKEY phkResult,
     _Out_opt_ LPDWORD lpdwDisposition
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Create ex key: ", hKey);
     return _Std_RCKEA(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
 }
 
@@ -307,7 +307,7 @@ LSTATUS APIENTRY RegCreateKeyExWInt(
     _Out_ PHKEY phkResult,
     _Out_opt_ LPDWORD lpdwDisposition
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Create ex key: ", hKey);
     return _Std_RCKEW(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
 }
 
@@ -326,7 +326,7 @@ RegCreateKeyTransactedAInt(
     _In_        HANDLE hTransaction,
     _Reserved_ PVOID  pExtendedParemeter
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Create transacted key: ", hKey);
     return _Std_RCKTA(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition, hTransaction, pExtendedParemeter);
 }
 
@@ -345,7 +345,7 @@ RegCreateKeyTransactedWInt(
     _In_        HANDLE hTransaction,
     _Reserved_ PVOID  pExtendedParemeter
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Create transacted key: ", hKey);
     return _Std_RCKTW(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition, hTransaction, pExtendedParemeter);
 }
 
@@ -382,7 +382,7 @@ RegDeleteKeyExAInt(
     _In_ REGSAM samDesired,
     _Reserved_ DWORD Reserved
 ){
-    WriteInfoInFile("Delete key: ", hKey);
+    WriteInfoInFile("Delete ex key: ", hKey);
     return _Std_RDKEA(hKey, lpSubKey, samDesired, Reserved);
 }
 
@@ -394,7 +394,7 @@ RegDeleteKeyExWInt(
     _In_ REGSAM samDesired,
     _Reserved_ DWORD Reserved
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Delete ex key: ", hKey);
     return _Std_RDKEW(hKey, lpSubKey, samDesired, Reserved);
 }
 
@@ -408,7 +408,7 @@ RegDeleteKeyTransactedAInt(
     _In_        HANDLE hTransaction,
     _Reserved_ PVOID  pExtendedParameter
 ) {
-    WriteInfoInFile("Delete key: ", hKey);
+    WriteInfoInFile("Delete transacted key: ", hKey);
     return _Std_RDKTA(hKey, lpSubKey, samDesired, Reserved, hTransaction, pExtendedParameter);
 }
 LSTATUS
@@ -421,7 +421,7 @@ RegDeleteKeyTransactedWInt(
     _In_        HANDLE hTransaction,
     _Reserved_ PVOID  pExtendedParameter
 ) {
-    WriteInfoInFile("Delete key: ", hKey);
+    WriteInfoInFile("Delete transacted key: ", hKey);
     return _Std_RDKTW(hKey, lpSubKey, samDesired, Reserved, hTransaction, pExtendedParameter);
 }
 LONG
@@ -429,7 +429,7 @@ APIENTRY
 RegDisableReflectionKeyInt(
     _In_ HKEY hBase
 ) {
-    WriteInfoInFile("Disable key: ", hBase);
+    WriteInfoInFile("Disable reflection key: ", hBase);
     return _Std_RDRK(hBase);
 }
 LONG
@@ -437,7 +437,7 @@ APIENTRY
 RegEnableReflectionKeyInt(
     _In_ HKEY hBase
 ) {
-    WriteInfoInFile("Create key: ", hBase);
+    WriteInfoInFile("Enable reflection key: ", hBase);
      return _Std_RERK(hBase);
 }
 LONG
@@ -446,7 +446,7 @@ RegQueryReflectionKeyInt(
     _In_ HKEY hBase,
     _Out_ BOOL* bIsReflectionDisabled
 ) {
-    WriteInfoInFile("Create key: ", hBase);
+    WriteInfoInFile("Quary reflection key: ", hBase);
     return _Std_RQRK(hBase, bIsReflectionDisabled);
 
 }
@@ -456,7 +456,7 @@ RegDeleteValueAInt(
     _In_ HKEY hKey,
     _In_opt_ LPCSTR lpValueName
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Delete value: ", hKey);
     return _Std_RDVA(hKey, lpValueName);
 }
 LSTATUS
@@ -465,7 +465,7 @@ RegDeleteValueWInt(
     _In_ HKEY hKey,
     _In_opt_ LPCWSTR lpValueName
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Delete value: ", hKey);
     return _Std_RDVW(hKey, lpValueName);
 }
 LSTATUS
@@ -476,7 +476,7 @@ RegEnumKeyAInt(
     _Out_writes_opt_(cchName) LPSTR lpName,
     _In_ DWORD cchName
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Enum key: ", hKey);
     return _Std_REKA(hKey, dwIndex, lpName, cchName);
 }
 LSTATUS
@@ -487,7 +487,7 @@ RegEnumKeyWInt(
     _Out_writes_opt_(cchName) LPWSTR lpName,
     _In_ DWORD cchName
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Enum key: ", hKey);
     return _Std_REKW(hKey, dwIndex, lpName, cchName);
 }
 LSTATUS
@@ -502,7 +502,7 @@ RegEnumKeyExAInt(
     _Inout_opt_ LPDWORD lpcchClass,
     _Out_opt_ PFILETIME lpftLastWriteTime
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Enum ex key: ", hKey);
     return _Std_REKEA(hKey, dwIndex, lpName, lpcchName, lpReserved, lpClass, lpcchClass, lpftLastWriteTime);
 }
 LSTATUS
@@ -517,7 +517,7 @@ RegEnumKeyExWInt(
     _Inout_opt_ LPDWORD lpcchClass,
     _Out_opt_ PFILETIME lpftLastWriteTime
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Enum ex key: ", hKey);
     return _Std_REKEW(hKey, dwIndex, lpName, lpcchName, lpReserved, lpClass, lpcchClass, lpftLastWriteTime);
 }
 LSTATUS
@@ -532,7 +532,7 @@ RegEnumValueAInt(
     _Out_writes_bytes_to_opt_(*lpcbData, *lpcbData) __out_data_source(REGISTRY) LPBYTE lpData,
     _Inout_opt_ LPDWORD lpcbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Enum value: ", hKey);
    return _Std_REVA(hKey, dwIndex, lpValueName, lpcchValueName, lpReserved, lpType, lpData, lpcbData);
 
 }
@@ -548,7 +548,7 @@ RegEnumValueWInt(
     _Out_writes_bytes_to_opt_(*lpcbData, *lpcbData) __out_data_source(REGISTRY) LPBYTE lpData,
     _Inout_opt_ LPDWORD lpcbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Enum value: ", hKey);
     return _Std_REVW(hKey, dwIndex, lpValueName, lpcchValueName, lpReserved, lpType, lpData, lpcbData);
 }
 LSTATUS
@@ -556,7 +556,7 @@ APIENTRY
 RegFlushKeyInt(
     _In_ HKEY hKey
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Flush key: ", hKey);
     return _Std_RFK(hKey);
 }
 LSTATUS
@@ -567,7 +567,7 @@ RegGetKeySecurityInt(
     _Out_writes_bytes_opt_(*lpcbSecurityDescriptor) PSECURITY_DESCRIPTOR pSecurityDescriptor,
     _Inout_ LPDWORD lpcbSecurityDescriptor
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Get key security: ", hKey);
     return _Std_RGKS(hKey, SecurityInformation, pSecurityDescriptor, lpcbSecurityDescriptor);
   
 }
@@ -578,7 +578,7 @@ RegLoadKeyAInt(
     _In_opt_ LPCSTR lpSubKey,
     _In_ LPCSTR lpFile
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Load key: ", hKey);
     return _Std_RLKA(hKey, lpSubKey, lpFile);
 }
 LSTATUS
@@ -588,7 +588,7 @@ RegLoadKeyWInt(
     _In_opt_ LPCWSTR lpSubKey,
     _In_ LPCWSTR lpFile
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Load key: ", hKey);
     return _Std_RLKW(hKey, lpSubKey, lpFile);
 
 }
@@ -601,7 +601,7 @@ RegNotifyChangeKeyValueInt(
     _In_opt_ HANDLE hEvent,
     _In_ BOOL fAsynchronous
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Notify change key value: ", hKey);
     return _Std_RNCKV(hKey, bWatchSubtree, dwNotifyFilter, hEvent, fAsynchronous);
 }
 LSTATUS
@@ -611,7 +611,7 @@ RegOpenKeyAInt(
     _In_opt_ LPCSTR lpSubKey,
     _Out_ PHKEY phkResult
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Open key: ", hKey);
     return _Std_ROKA(hKey, lpSubKey, phkResult);
 }
 LSTATUS
@@ -621,7 +621,7 @@ RegOpenKeyWInt(
     _In_opt_ LPCWSTR lpSubKey,
     _Out_ PHKEY phkResult
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Open key: ", hKey);
     return _Std_ROKW(hKey, lpSubKey, phkResult);
 }
 LSTATUS
@@ -633,7 +633,8 @@ RegOpenKeyExAInt(
     _In_ REGSAM samDesired,
     _Out_ PHKEY phkResult
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+
+    WriteInfoInFile("Open ex key: ", hKey);
     return _Std_ROKEA(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 }
 LSTATUS
@@ -645,7 +646,7 @@ RegOpenKeyExWInt(
     _In_ REGSAM samDesired,
     _Out_ PHKEY phkResult
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Open ex key: ", hKey);
     return _Std_ROKEW(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 }
 LSTATUS
@@ -659,7 +660,7 @@ RegOpenKeyTransactedAInt(
     _In_        HANDLE hTransaction,
     _Reserved_ PVOID  pExtendedParemeter
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Open transacted key: ", hKey);
     return _Std_ROKTA(hKey, lpSubKey, ulOptions, samDesired,phkResult, hTransaction, pExtendedParemeter);
 }
 LSTATUS
@@ -673,7 +674,7 @@ RegOpenKeyTransactedWInt(
     _In_        HANDLE hTransaction,
     _Reserved_ PVOID  pExtendedParemeter
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Open transacted key: ", hKey);
     return _Std_ROKTW(hKey, lpSubKey, ulOptions, samDesired, phkResult, hTransaction, pExtendedParemeter);
 }
 LSTATUS
@@ -692,7 +693,7 @@ RegQueryInfoKeyAInt(
     _Out_opt_ LPDWORD lpcbSecurityDescriptor,
     _Out_opt_ PFILETIME lpftLastWriteTime
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Query info key: ", hKey);
     return _Std_RQIKA(hKey, lpClass, lpcchClass, lpReserved, lpcSubKeys, lpcbMaxSubKeyLen, lpcbMaxClassLen, lpcValues, lpcbMaxValueNameLen, lpcbMaxValueLen, lpcbSecurityDescriptor, lpftLastWriteTime);
    
 }
@@ -712,7 +713,7 @@ RegQueryInfoKeyWInt(
     _Out_opt_ LPDWORD lpcbSecurityDescriptor,
     _Out_opt_ PFILETIME lpftLastWriteTime
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Query info key: ", hKey);
     return _Std_RQIKW(hKey, lpClass, lpcchClass, lpReserved, lpcSubKeys, lpcbMaxSubKeyLen, lpcbMaxClassLen, lpcValues, lpcbMaxValueNameLen, lpcbMaxValueLen, lpcbSecurityDescriptor, lpftLastWriteTime);
 }
 LSTATUS
@@ -723,7 +724,7 @@ RegQueryValueAInt(
     _Out_writes_bytes_to_opt_(*lpcbData, *lpcbData) __out_data_source(REGISTRY) LPSTR lpData,
     _Inout_opt_ PLONG lpcbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Query value: ", hKey);
     return _Std_RQVA(hKey, lpSubKey, lpData, lpcbData);
 }
 LSTATUS
@@ -734,7 +735,7 @@ RegQueryValueWInt(
     _Out_writes_bytes_to_opt_(*lpcbData, *lpcbData) __out_data_source(REGISTRY) LPWSTR lpData,
     _Inout_opt_ PLONG lpcbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Query value: ", hKey);
     return _Std_RQVW(hKey, lpSubKey, lpData, lpcbData);
 }
 LSTATUS
@@ -746,7 +747,7 @@ RegQueryMultipleValuesAInt(
     _Out_writes_bytes_to_opt_(*ldwTotsize, *ldwTotsize) __out_data_source(REGISTRY) LPSTR lpValueBuf,
     _Inout_opt_ LPDWORD ldwTotsize
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Query multi values: ", hKey);
     return _Std_RQMVA(hKey, val_list,num_vals, lpValueBuf, ldwTotsize);
 }
 LSTATUS
@@ -758,7 +759,7 @@ RegQueryMultipleValuesWInt(
     _Out_writes_bytes_to_opt_(*ldwTotsize, *ldwTotsize) __out_data_source(REGISTRY) LPWSTR lpValueBuf,
     _Inout_opt_ LPDWORD ldwTotsize
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Query multi values: ", hKey);
     return _Std_RQMVW(hKey, val_list, num_vals, lpValueBuf, ldwTotsize);
 }
 LSTATUS
@@ -771,7 +772,7 @@ RegQueryValueExAInt(
     _Out_writes_bytes_to_opt_(*lpcbData, *lpcbData) __out_data_source(REGISTRY) LPBYTE lpData,
     _When_(lpData == NULL, _Out_opt_) _When_(lpData != NULL, _Inout_opt_) LPDWORD lpcbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Query ex value: ", hKey);
     return _Std_RQVEA(hKey, lpValueName, lpReserved, lpType, lpData, lpcbData);
 }
 LSTATUS
@@ -784,7 +785,7 @@ RegQueryValueExWInt(
     _Out_writes_bytes_to_opt_(*lpcbData, *lpcbData) __out_data_source(REGISTRY) LPBYTE lpData,
     _When_(lpData == NULL, _Out_opt_) _When_(lpData != NULL, _Inout_opt_) LPDWORD lpcbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Query ex value: ", hKey);
     return _Std_RQVEW(hKey, lpValueName, lpReserved, lpType, lpData, lpcbData);
 }
 LSTATUS
@@ -795,7 +796,7 @@ RegReplaceKeyAInt(
     _In_ LPCSTR lpNewFile,
     _In_ LPCSTR lpOldFile
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("replace key ", hKey);
     return _Std_RRKA(hKey, lpSubKey, lpNewFile, lpOldFile);
 }
 LSTATUS
@@ -806,7 +807,7 @@ RegReplaceKeyWInt(
     _In_ LPCWSTR lpNewFile,
     _In_ LPCWSTR lpOldFile
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Replace key: ", hKey);
     return _Std_RRKW(hKey, lpSubKey, lpNewFile, lpOldFile);
 }
 LSTATUS
@@ -816,7 +817,7 @@ RegRestoreKeyAInt(
     _In_ LPCSTR lpFile,
     _In_ DWORD dwFlags
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Restore key: ", hKey);
     return _Std_RRKAI(hKey, lpFile, dwFlags);
 }
 LSTATUS
@@ -826,7 +827,7 @@ RegRestoreKeyWInt(
     _In_ LPCWSTR lpFile,
     _In_ DWORD dwFlags
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Restore key: ", hKey);
     return _Std_RRKWI(hKey, lpFile, dwFlags);
 }
 LSTATUS
@@ -836,7 +837,7 @@ RegRenameKeyInt(
     _In_opt_ LPCWSTR lpSubKeyName,
     _In_ LPCWSTR lpNewKeyName
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Rename key: ", hKey);
     return _Std_RRK(hKey, lpSubKeyName, lpNewKeyName);
 }
 LSTATUS
@@ -846,7 +847,7 @@ RegSaveKeyAInt(
     _In_ LPCSTR lpFile,
     _In_opt_ CONST LPSECURITY_ATTRIBUTES lpSecurityAttributes
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Save key: ", hKey);
     return _Std_RSKA(hKey, lpFile, lpSecurityAttributes);
 }
 LSTATUS
@@ -856,7 +857,7 @@ RegSaveKeyWInt(
     _In_ LPCWSTR lpFile,
     _In_opt_ CONST LPSECURITY_ATTRIBUTES lpSecurityAttributes
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Save key: ", hKey);
     return _Std_RSKW(hKey, lpFile, lpSecurityAttributes);
 }
 LSTATUS
@@ -866,7 +867,7 @@ RegSetKeySecurityInt(
     _In_ SECURITY_INFORMATION SecurityInformation,
     _In_ PSECURITY_DESCRIPTOR pSecurityDescriptor
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Set key security: ", hKey);
     return _Std_RSKS(hKey, SecurityInformation, pSecurityDescriptor);
 }
 LSTATUS
@@ -878,7 +879,7 @@ RegSetValueAInt(
     _In_reads_bytes_opt_(cbData) LPCSTR lpData,
     _In_ DWORD cbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Set value: ", hKey);
     return _Std_RSVA(hKey, lpSubKey, dwType, lpData, cbData);
 }
 LSTATUS
@@ -890,7 +891,7 @@ RegSetValueWInt(
     _In_reads_bytes_opt_(cbData) LPCWSTR lpData,
     _In_ DWORD cbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Set value: ", hKey);
     return _Std_RSVW(hKey, lpSubKey, dwType, lpData, cbData);
 }
 LSTATUS
@@ -903,7 +904,7 @@ RegSetValueExAInt(
     _In_reads_bytes_opt_(cbData) CONST BYTE* lpData,
     _In_ DWORD cbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Set value ex: ", hKey);
     return _Std_RSVEA(hKey, lpValueName, Reserved, dwType, lpData, cbData);
 }
 LSTATUS
@@ -916,7 +917,7 @@ RegSetValueExWInt(
     _In_reads_bytes_opt_(cbData) CONST BYTE* lpData,
     _In_ DWORD cbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Set value ex: ", hKey);
     return _Std_RSVEW(hKey, lpValueName, Reserved, dwType, lpData, cbData);
 }
 LSTATUS
@@ -925,7 +926,7 @@ RegUnLoadKeyAInt(
     _In_ HKEY hKey,
     _In_opt_ LPCSTR lpSubKey
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Unload Key: ", hKey);
     return _Std_RULKA(hKey, lpSubKey);
 }
 LSTATUS
@@ -934,7 +935,7 @@ RegUnLoadKeyWInt(
     _In_ HKEY hKey,
     _In_opt_ LPCWSTR lpSubKey
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Unload Key: ", hKey);
     return _Std_RULKW(hKey, lpSubKey);
 }
 LSTATUS
@@ -944,7 +945,7 @@ RegDeleteKeyValueAInt(
     _In_opt_ LPCSTR lpSubKey,
     _In_opt_ LPCSTR lpValueName
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Delete key value: ", hKey);
     return _Std_RDKVA(hKey, lpSubKey, lpValueName);
 }
 LSTATUS
@@ -954,7 +955,7 @@ RegDeleteKeyValueWInt(
     _In_opt_ LPCWSTR lpSubKey,
     _In_opt_ LPCWSTR lpValueName
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Delete key value: ", hKey);
     return _Std_RDKVW(hKey, lpSubKey, lpValueName);
 }
 LSTATUS
@@ -967,7 +968,7 @@ RegSetKeyValueAInt(
     _In_reads_bytes_opt_(cbData) LPCVOID lpData,
     _In_ DWORD cbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Set key value: ", hKey);
     return _Std_RSKVA(hKey, lpSubKey, lpValueName, dwType, lpData, cbData);
 }
 LSTATUS
@@ -980,7 +981,7 @@ RegSetKeyValueWInt(
     _In_reads_bytes_opt_(cbData) LPCVOID lpData,
     _In_ DWORD cbData
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Set key value: ", hKey);
     return _Std_RSKVW(hKey, lpSubKey, lpValueName, dwType, lpData, cbData);
 }
 LSTATUS
@@ -989,7 +990,7 @@ RegDeleteTreeAInt(
     _In_ HKEY hKey,
     _In_opt_ LPCSTR lpSubKey
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Delete tree: ", hKey);
     return _Std_RDTA(hKey, lpSubKey);
 }
 LSTATUS
@@ -998,7 +999,7 @@ RegDeleteTreeWInt(
     _In_ HKEY hKey,
     _In_opt_ LPCWSTR lpSubKey
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Delete tree: ", hKey);
     return _Std_RDTW(hKey, lpSubKey);
 }
 LSTATUS
@@ -1019,7 +1020,7 @@ RegGetValueAInt(
     _Out_writes_bytes_to_opt_(*pcbData, *pcbData) PVOID pvData,
     _Inout_opt_ LPDWORD pcbData
 ) {
-    WriteInfoInFile("Create key: ", hkey);
+    WriteInfoInFile("Get value: ", hkey);
     return _Std_RGVA(hkey, lpSubKey, lpValue, dwFlags, pdwType, pvData, pcbData);
 }
 LSTATUS
@@ -1040,7 +1041,7 @@ RegGetValueWInt(
     _Out_writes_bytes_to_opt_(*pcbData, *pcbData) PVOID pvData,
     _Inout_opt_ LPDWORD pcbData
 ) {
-    WriteInfoInFile("Create key: ", hkey);
+    WriteInfoInFile("Get value: ", hkey);
     return _Std_RGVW(hkey, lpSubKey, lpValue, dwFlags, pdwType, pvData, pcbData);
 }
 
@@ -1055,7 +1056,7 @@ RegLoadMUIStringAInt(
     _In_ DWORD Flags,
     _In_opt_ LPCSTR pszDirectory
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Load MUI string: ", hKey);
     return _Std_RLMSA(hKey, pszValue, pszOutBuf, cbOutBuf, pcbData, Flags, pszDirectory);
 }
 LSTATUS
@@ -1069,7 +1070,7 @@ RegLoadMUIStringWInt(
     _In_ DWORD Flags,
     _In_opt_ LPCWSTR pszDirectory
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Load MUI string: ", hKey);
     return _Std_RLMSW(hKey, pszValue, pszOutBuf, cbOutBuf, pcbData, Flags, pszDirectory);
 }
 LSTATUS
@@ -1081,7 +1082,7 @@ RegLoadAppKeyAInt(
     _In_ DWORD dwOptions,
     _Reserved_ DWORD Reserved
 ) {
-    WriteInfoInFile("Create key: ", lpFile);
+    WriteInfoInFile("Load app key: ", lpFile);
     return _Std_RLAKA(lpFile, phkResult, samDesired, dwOptions, Reserved);
 }
 LSTATUS
@@ -1093,7 +1094,7 @@ RegLoadAppKeyWInt(
     _In_ DWORD dwOptions,
     _Reserved_ DWORD Reserved
 ) {
-    WriteInfoInFile("Create key: ", lpFile);
+    WriteInfoInFile("Load app key: ", lpFile);
     return _Std_RLAKW(lpFile, phkResult, samDesired, dwOptions, Reserved);
 }
 
@@ -1103,7 +1104,7 @@ APIENTRY
 RegDisablePredefinedCacheExInt(
     VOID
 ){
-    WriteInfoInFile("Create key: ", " ");
+    WriteInfoInFile("Disable Predefined cache ex", " ");
     return _Std_RDPCE();
 }
 
@@ -1114,7 +1115,7 @@ APIENTRY
 RegDisablePredefinedCacheInt(
     VOID
 ) {
-    WriteInfoInFile("Create key: ", " ");
+    WriteInfoInFile("Disable predefined cache", " ");
     return _Std_RDPC();
 }
 
@@ -1124,7 +1125,7 @@ RegOverridePredefKeyInt(
     _In_ HKEY hKey,
     _In_opt_ HKEY hNewHKey
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Override predef key: ", hKey);
     return _Std_ROPK(hKey, hNewHKey);
 }
 
@@ -1139,7 +1140,7 @@ RegOpenUserClassesRootInt(
     _In_ REGSAM samDesired,
     _Out_ PHKEY phkResult
 ) {
-    WriteInfoInFile("Create key: ", " ");
+    WriteInfoInFile("Open user classes root", " ");
     return _Std_ROUCR(hToken, dwOptions, samDesired, phkResult);
 }
 
@@ -1151,7 +1152,7 @@ RegOpenCurrentUserInt(
     _In_ REGSAM samDesired,
     _Out_ PHKEY phkResult
 ) {
-    WriteInfoInFile("Create key: ", " ");
+    WriteInfoInFile("Open current user", " ");
     return _Std_ROCU(samDesired, phkResult);
 }
 
@@ -1164,7 +1165,7 @@ RegConnectRegistryExAInt(
     _In_ ULONG Flags,
     _Out_ PHKEY phkResult
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Connect registory ex: ", hKey);
     return _Std_RCREA(lpMachineName, hKey, Flags, phkResult);
 }
 
@@ -1176,7 +1177,7 @@ RegConnectRegistryExWInt(
     _In_ ULONG Flags,
     _Out_ PHKEY phkResult
 ) {
-    WriteInfoInFile("Create key: ", hKey);
+    WriteInfoInFile("Connect registory ex: ", hKey);
     return _Std_RCREW(lpMachineName, hKey, Flags, phkResult);
 }
 
@@ -1187,7 +1188,7 @@ CheckForHiberbootInt(
     _Inout_ PBOOLEAN pHiberboot,
     _In_ BOOLEAN bClearFlag
 ) {
-    WriteInfoInFile("Create key: ", "asd");
+    WriteInfoInFile("Check for hiberboot ", " ");
     return _Std_CFH(pHiberboot, bClearFlag);
 }
 
@@ -1200,7 +1201,7 @@ RegSaveKeyExAInt(
     _In_opt_ CONST LPSECURITY_ATTRIBUTES lpSecurityAttributes,
     _In_ DWORD Flags
 ) {
-    WriteInfoInFile("Create key: ", "asd");
+    WriteInfoInFile("Save key ex: ", hKey);
     return _Std_RSKEA(hKey, lpFile, lpSecurityAttributes, Flags);
 }
 
@@ -1213,7 +1214,7 @@ RegSaveKeyExWInt(
     _In_opt_ CONST LPSECURITY_ATTRIBUTES lpSecurityAttributes,
     _In_ DWORD Flags
 ) {
-    WriteInfoInFile("Create key: ", "asd");
+    WriteInfoInFile("Save key ex: ", hKey);
     return _Std_RSKEW(hKey, lpFile, lpSecurityAttributes, Flags);    
 }
 
