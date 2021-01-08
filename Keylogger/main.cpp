@@ -108,7 +108,6 @@ void main(int argc, char* argv[]) {
 		BYTE* p_code;
 		char* lpszDllName;
 		DWORD wr, id;
-		
 		if (CreateProcessW(NULL, convertStr(argv[1]), NULL, NULL, FALSE, NULL, NULL, NULL, &cif, &pi)) {
 			
 
