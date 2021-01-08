@@ -122,7 +122,7 @@ int main()
 	unsigned char szStr[2];
 	szStr[0] = '1'; szStr[1] = '\0';
 	int i;
-	Sleep(5000);
+	Sleep(1000);
 	cout << "start" << endl;
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\VR_Online\\Test"), 0, KEY_ALL_ACCESS, &hKey) != ERROR_SUCCESS)
 		cout << "\nError opening the desired subkey (doesn't exist?).\n";
@@ -133,15 +133,17 @@ int main()
 		else
 			cout << "\nError setting the value of the key.\n";
 	}
+	Sleep(1000);
 	RegCloseKey(hKey);
-
+	Sleep(1000);
 	RegCreateKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\VR_Online\\Test\\Another SubKey"), 0, NULL, 0, 0, NULL, &hKey, &dwDisposition);
 	if (dwDisposition != REG_CREATED_NEW_KEY && dwDisposition != REG_OPENED_EXISTING_KEY)
 		cout << "\nError creating the desired subkey (permissions?).\n";
 	else
 		cout << "\nThe subkey was successfully created.\n";
+	Sleep(1000);
 	RegCloseKey(hKey);
-
+	Sleep(1000);
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\VR_Online\\Test"), 0, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
 	{
 		if (RegDeleteValue(hKey, TEXT("String Value")) == ERROR_SUCCESS)
@@ -151,7 +153,7 @@ int main()
 	}
 	else
 		cout << "\nError opening the specified subkey path (doesn't exist?).\n";
-
+	Sleep(1000);
 	RegCloseKey(hKey);
 
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\VR_Online\\Test"), 0, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
@@ -163,9 +165,9 @@ int main()
 	}
 	else
 		cout << "\nError opening the specified subkey path (doesn't exist?).\n";
-
+	Sleep(1000);
 	RegCloseKey(hKey);
-
+	Sleep(1000);
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software\\VR_Online"), 0, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
 	{
 		if (RegDeleteKey(hKey, TEXT("Test")) == ERROR_SUCCESS)
@@ -175,9 +177,9 @@ int main()
 	}
 	else
 		cout << "\nError opening the specified subkey path (doesn't exist?).\n";
-
+	Sleep(1000);
 	RegCloseKey(hKey);
-
+	Sleep(1000);
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("Software"), 0, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS)
 	{
 		if (RegDeleteKey(hKey, TEXT("VR_Online")) == ERROR_SUCCESS)
@@ -187,8 +189,7 @@ int main()
 	}
 	else
 		cout << "\nError opening the specified subkey path (doesn't exist?).\n";
-
+	Sleep(1000);
 	RegCloseKey(hKey);
-
 	system("pause");
 }

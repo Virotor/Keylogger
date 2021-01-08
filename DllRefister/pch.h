@@ -11,4 +11,5 @@
 #include "framework.h"
 #include "Interaptions.h"
 #include "Detours.h"
+
 #endif //PCH_H

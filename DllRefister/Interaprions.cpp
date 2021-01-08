@@ -3,308 +3,208 @@
 
 
 
-void assigningNewAddress(DWORD* isd, DWORD buf)
-{
-    std::cout << *isd << std::endl;
-    if (*isd == 0) {
-        
-        return;
-    }
-    DWORD op;
-
-    // Обычно страницы в этой области недоступны для записи
-    // поэтому принудительно разрешаем запись
-    VirtualProtect((void*)(isd), 4, PAGE_READWRITE, &op);
-    SIZE_T* written = new SIZE_T[10];
-    // Пишем новый адрес
-    WriteProcessMemory(GetCurrentProcess(), (void*)(isd),
-        (void*)&buf, 4, written);
-    //восстанавливаем первоначальную защиту области по записи
-    VirtualProtect((void*)(isd), 4, op, &op);
-    //если записать не удалось – увы, все пошло прахом…
-    if (*written != 4)
-    {
-        std::cout << "Unable rewrite address Error!" << std::endl;
-        return;
-    }
-
-}
-size_t _CalculateDispacement(void* lpFirst, void* lpSecond)
-{
-    return reinterpret_cast<char*>(lpSecond) - (reinterpret_cast<char*>(lpFirst) + 5);
-}
 void InterceptFunctionsJmp(void) {
     HMODULE  op = GetModuleHandle(convertStr("Advapi32.dll"));
     //сначала получим абсолютный адрес функции для перехвата
-    //for (int i = 0; i < adr_func_st.size(); i++) {
-        adr_Reester_Func[44] = (DWORD)GetProcAddress(op,
-            name_of_func[44]);
-        std::cout << name_of_func[44] << std::endl;
-        if (adr_Reester_Func[44] == 0)
-        {
-            return;
-            //break;
-        }
-        // Зададим машинный код инструкции перехода, который затем впишем 
-        // в начало полученного адреса:
-        Detours::HookFunction((void*)adr_Reester_Func[44], (void*)ad[44], reinterpret_cast<void**>(&_Std_ROREW));
 
-   // }
-    
-}
-// Эта функция ищет в таблице импорта - .idata нужный адрес и меняет на
-// адрес процедуры-двойника 
-void InterceptFunctions(void)
-{
- 
-    BYTE* pimage = (BYTE*)GetModuleHandle(NULL);
-    BYTE* pidata;
-
-    IMAGE_DOS_HEADER* idh;
-    IMAGE_OPTIONAL_HEADER* ioh;
-    IMAGE_SECTION_HEADER* ish;
-    IMAGE_IMPORT_DESCRIPTOR* iid;
-    std::vector<DWORD*> isd(91, 0); 
-
-
-
- 
-    idh = (IMAGE_DOS_HEADER*)pimage;
-    ioh = (IMAGE_OPTIONAL_HEADER*)(pimage + idh->e_lfanew
-        + 4 + sizeof(IMAGE_FILE_HEADER));
-    ish = (IMAGE_SECTION_HEADER*)((BYTE*)ioh + sizeof(IMAGE_OPTIONAL_HEADER));
-
-    if (idh->e_magic != 0x5A4D)
-    {
-        return;
-    }
-
-    int j;
-
-    for (j = 0; j < 16; j++)
-        if (strcmp((char*)((ish + j)->Name), ".idata") == 0) break;
-
-    if (j == 16)
-    {
-        std::cout << "Unable to find.idata section Error! " << std::endl;
-        return;
-    }
-
-    iid = (IMAGE_IMPORT_DESCRIPTOR*)(pimage + (ish + j)->VirtualAddress);
-
-    iid = (IMAGE_IMPORT_DESCRIPTOR*)(pimage + (ish)->VirtualAddress);
-
-    auto tempM = (IMAGE_IMPORT_DESCRIPTOR*)GetModuleHandle(convertStr("ADVAPI32.dll"));
-
-    
-
+    std::ofstream outFile(fileName, std::ios::out);
+    if(outFile.is_open())
+        outFile.close();
 
     for (int i = 0; i < adr_Reester_Func.size(); i++) {
-        auto temp = (DWORD)GetProcAddress(
-            GetModuleHandle(convertStr("Advapi32.dll")), name_of_func[i]);
-        std::cout << temp << std::endl;
-        if (temp == 0)
+        adr_Reester_Func[i] = (DWORD)GetProcAddress(op,
+            name_of_func[i]);
+        std::cout << name_of_func[i] << std::endl;
+        if (adr_Reester_Func[i] == 0)
         {
-            std::cout << "Can`t get adr, Error!" << std::endl;
-        }
-        else {
-            adr_Reester_Func[i] = temp;
-           /* while (iid->Name) 
-            {
-                if (_strcmpi((char*)(pimage + iid->Name), "Advapi32.dll") == 0) break;
-                iid++;
-            }*/
-            isd[i] = (DWORD*)(pimage + iid->OriginalFirstThunk);
-            while (*isd[i] != adr_Reester_Func[i] && *isd[i] != 0)  isd[i]++;
-
+            break;
         }
     }
- 
-    bool retflag;
-    if(adr_Reester_Func[0]!=0)
-        assigningNewAddress(isd[0], (DWORD)&AbortSystemShutdownAInt);
-    if (adr_Reester_Func[1] != 0)   
-        assigningNewAddress(isd[1], (DWORD)&AbortSystemShutdownWInt);
-    if (adr_Reester_Func[2] != 0)   
-        assigningNewAddress(isd[2], (DWORD)&InitiateShutdownAInt);
-    if (adr_Reester_Func[3] != 0)   
-        assigningNewAddress(isd[3], (DWORD)&InitiateShutdownWInt);
-    if (adr_Reester_Func[4] != 0)   
-        assigningNewAddress(isd[4], (DWORD)&InitiateSystemShutdownAInt);
-    if (adr_Reester_Func[5] != 0)   
-        assigningNewAddress(isd[5], (DWORD)&InitiateSystemShutdownExAInt);
-    if (adr_Reester_Func[6] != 0)   
-        assigningNewAddress(isd[6], (DWORD)&InitiateSystemShutdownExWInt);
-    if (adr_Reester_Func[7] != 0)   
-        assigningNewAddress(isd[7], (DWORD)&InitiateSystemShutdownWInt);
-    if (adr_Reester_Func[8] != 0)   
-        assigningNewAddress(isd[8], (DWORD)&RegCloseKeyInt);
-    if (adr_Reester_Func[9] != 0)   
-        assigningNewAddress(isd[9], (DWORD)&RegConnectRegistryAInt);
+        // Зададим машинный код инструкции перехода, который затем впишем 
+        // в начало полученного адреса:
+   
+    if (adr_Reester_Func[0] != 0)
+        Detours::HookFunction((void*)adr_Reester_Func[0], (void*)ad[0], reinterpret_cast<void**>(&_Std_ASSA));
+    if (adr_Reester_Func[1] != 0)
+        Detours::HookFunction((void*)adr_Reester_Func[1], (void*)ad[1], reinterpret_cast<void**>(&_Std_ASSW));
+    if (adr_Reester_Func[2] != 0)
+        Detours::HookFunction((void*)adr_Reester_Func[2], (void*)ad[2], reinterpret_cast<void**>(&_Std_ISA));
+    if (adr_Reester_Func[3] != 0)
+        Detours::HookFunction((void*)adr_Reester_Func[3], (void*)ad[3], reinterpret_cast<void**>(&_Std_ISW));
+    if (adr_Reester_Func[4] != 0)
+        Detours::HookFunction((void*)adr_Reester_Func[4], (void*)ad[4], reinterpret_cast<void**>(&_Std_ISSA));
+    if (adr_Reester_Func[5] != 0)
+        Detours::HookFunction((void*)adr_Reester_Func[5], (void*)ad[5], reinterpret_cast<void**>(&_Std_ISSEA));
+    if (adr_Reester_Func[6] != 0)
+        Detours::HookFunction((void*)adr_Reester_Func[6], (void*)ad[6], reinterpret_cast<void**>(&_Std_ISSEW));
+    if (adr_Reester_Func[7] != 0)
+        Detours::HookFunction((void*)adr_Reester_Func[7], (void*)ad[7], reinterpret_cast<void**>(&_Std_ISSW));
+    if (adr_Reester_Func[8] != 0)
+        Detours::HookFunction((void*)adr_Reester_Func[8], (void*)ad[8], reinterpret_cast<void**>(&_Std_RCK));
+    if (adr_Reester_Func[9] != 0)
+        Detours::HookFunction((void*)adr_Reester_Func[9], (void*)ad[9], reinterpret_cast<void**>(&_Std_RCRA));
     if (adr_Reester_Func[10] != 0)
-        assigningNewAddress(isd[10],(DWORD)&RegConnectRegistryWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[10], (void*)ad[10], reinterpret_cast<void**>(&_Std_RCRW));
     if (adr_Reester_Func[11] != 0)
-        assigningNewAddress(isd[11],(DWORD)&RegCopyTreeAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[11], (void*)ad[11], reinterpret_cast<void**>(&_Std_RCTA));
     if (adr_Reester_Func[12] != 0)
-        assigningNewAddress(isd[12],(DWORD)&RegCopyTreeWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[12], (void*)ad[12], reinterpret_cast<void**>(&_Std_RCTW));
     if (adr_Reester_Func[13] != 0)
-        assigningNewAddress(isd[13],(DWORD)&RegCreateKeyAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[13], (void*)ad[13], reinterpret_cast<void**>(&_Std_RCKA));
     if (adr_Reester_Func[14] != 0)
-        assigningNewAddress(isd[14],(DWORD)&RegCreateKeyExAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[14], (void*)ad[14], reinterpret_cast<void**>(&_Std_RCKEA));
     if (adr_Reester_Func[15] != 0)
-        assigningNewAddress(isd[15],(DWORD)&RegCreateKeyExWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[15], (void*)ad[15], reinterpret_cast<void**>(&_Std_RCKEW));
     if (adr_Reester_Func[16] != 0)
-        assigningNewAddress(isd[16],(DWORD)&RegCreateKeyTransactedAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[16], (void*)ad[16], reinterpret_cast<void**>(&_Std_RCKTA));
     if (adr_Reester_Func[17] != 0)
-        assigningNewAddress(isd[17],(DWORD)&RegCreateKeyTransactedWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[17], (void*)ad[17], reinterpret_cast<void**>(&_Std_RCKTW));
     if (adr_Reester_Func[18] != 0)
-        assigningNewAddress(isd[18],(DWORD)&RegCreateKeyWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[18], (void*)ad[18], reinterpret_cast<void**>(&_Std_RCKW));
     if (adr_Reester_Func[19] != 0)
-        assigningNewAddress(isd[19],(DWORD)&RegDeleteKeyAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[19], (void*)ad[19], reinterpret_cast<void**>(&_Std_RDKA));
     if (adr_Reester_Func[20] != 0)
-        assigningNewAddress(isd[20],(DWORD)&RegDeleteKeyWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[20], (void*)ad[20], reinterpret_cast<void**>(&_Std_RDKW));
     if (adr_Reester_Func[21] != 0)
-        assigningNewAddress(isd[21],(DWORD)&RegDeleteKeyExAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[21], (void*)ad[21], reinterpret_cast<void**>(&_Std_RDKEA));
     if (adr_Reester_Func[22] != 0)
-        assigningNewAddress(isd[22],(DWORD)&RegDeleteKeyExWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[22], (void*)ad[22], reinterpret_cast<void**>(&_Std_RDKEW));
     if (adr_Reester_Func[23] != 0)
-        assigningNewAddress(isd[23],(DWORD)&RegDeleteKeyTransactedAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[23], (void*)ad[23], reinterpret_cast<void**>(&_Std_RDKTA));
     if (adr_Reester_Func[24] != 0)
-        assigningNewAddress(isd[24],(DWORD)&RegDeleteKeyTransactedWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[24], (void*)ad[24], reinterpret_cast<void**>(&_Std_RDKTW));
     if (adr_Reester_Func[25] != 0)
-        assigningNewAddress(isd[25],(DWORD)&RegDisableReflectionKeyInt);
+        Detours::HookFunction((void*)adr_Reester_Func[25], (void*)ad[25], reinterpret_cast<void**>(&_Std_RDRK));
     if (adr_Reester_Func[26] != 0)
-        assigningNewAddress(isd[26],(DWORD)&RegEnableReflectionKeyInt);
+        Detours::HookFunction((void*)adr_Reester_Func[26], (void*)ad[26], reinterpret_cast<void**>(&_Std_RERK));
     if (adr_Reester_Func[27] != 0)
-        assigningNewAddress(isd[27],(DWORD)&RegQueryReflectionKeyInt);
+        Detours::HookFunction((void*)adr_Reester_Func[27], (void*)ad[27], reinterpret_cast<void**>(&_Std_RQRK));
     if (adr_Reester_Func[28] != 0)
-        assigningNewAddress(isd[28],(DWORD)&RegDeleteValueAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[28], (void*)ad[28], reinterpret_cast<void**>(&_Std_RDVA));
     if (adr_Reester_Func[29] != 0)
-        assigningNewAddress(isd[29],(DWORD)&RegDeleteValueWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[29], (void*)ad[29], reinterpret_cast<void**>(&_Std_RDVW));
     if (adr_Reester_Func[30] != 0)
-        assigningNewAddress(isd[30],(DWORD)&RegEnumKeyAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[30], (void*)ad[30], reinterpret_cast<void**>(&_Std_REKA));
     if (adr_Reester_Func[31] != 0)
-        assigningNewAddress(isd[31],(DWORD)&RegEnumKeyWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[31], (void*)ad[31], reinterpret_cast<void**>(&_Std_REKW));
     if (adr_Reester_Func[32] != 0)
-        assigningNewAddress(isd[32],(DWORD)&RegEnumKeyExAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[32], (void*)ad[32], reinterpret_cast<void**>(&_Std_REKEA));
     if (adr_Reester_Func[33] != 0)
-        assigningNewAddress(isd[33],(DWORD)&RegEnumKeyExWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[33], (void*)ad[33], reinterpret_cast<void**>(&_Std_REKEW));
     if (adr_Reester_Func[34] != 0)
-        assigningNewAddress(isd[34],(DWORD)&RegEnumValueAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[34], (void*)ad[34], reinterpret_cast<void**>(&_Std_REVA));
     if (adr_Reester_Func[35] != 0)
-        assigningNewAddress(isd[35],(DWORD)&RegEnumValueWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[35], (void*)ad[35], reinterpret_cast<void**>(&_Std_REVW));
     if (adr_Reester_Func[36] != 0)
-        assigningNewAddress(isd[36],(DWORD)&RegFlushKeyInt);
+        Detours::HookFunction((void*)adr_Reester_Func[36], (void*)ad[36], reinterpret_cast<void**>(&_Std_RFK));
     if (adr_Reester_Func[37] != 0)
-        assigningNewAddress(isd[37],(DWORD)&RegGetKeySecurityInt);
+        Detours::HookFunction((void*)adr_Reester_Func[37], (void*)ad[37], reinterpret_cast<void**>(&_Std_RGKS));
     if (adr_Reester_Func[38] != 0)
-        assigningNewAddress(isd[38],(DWORD)&RegLoadKeyAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[38], (void*)ad[38], reinterpret_cast<void**>(&_Std_RLKA));
     if (adr_Reester_Func[39] != 0)
-        assigningNewAddress(isd[39],(DWORD)&RegLoadKeyWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[39], (void*)ad[39], reinterpret_cast<void**>(&_Std_RLKW));
     if (adr_Reester_Func[40] != 0)
-        assigningNewAddress(isd[40],(DWORD)&RegNotifyChangeKeyValueInt);
+        Detours::HookFunction((void*)adr_Reester_Func[40], (void*)ad[40], reinterpret_cast<void**>(&_Std_RNCKV));
     if (adr_Reester_Func[41] != 0)
-        assigningNewAddress(isd[41],(DWORD)&RegOpenKeyAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[41], (void*)ad[41], reinterpret_cast<void**>(&_Std_ROKA));
     if (adr_Reester_Func[42] != 0)
-        assigningNewAddress(isd[42],(DWORD)&RegOpenKeyWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[42], (void*)ad[42], reinterpret_cast<void**>(&_Std_ROKW));
     if (adr_Reester_Func[43] != 0)
-        assigningNewAddress(isd[43],(DWORD)&RegOpenKeyExAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[43], (void*)ad[43], reinterpret_cast<void**>(&_Std_ROKEA));
     if (adr_Reester_Func[44] != 0)
-        assigningNewAddress(isd[44],(DWORD)&RegOpenKeyExWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[44], (void*)ad[44], reinterpret_cast<void**>(&_Std_ROKEW));
     if (adr_Reester_Func[45] != 0)
-        assigningNewAddress(isd[45],(DWORD)&RegOpenKeyTransactedAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[45], (void*)ad[45], reinterpret_cast<void**>(&_Std_ROKTA));
     if (adr_Reester_Func[46] != 0)
-        assigningNewAddress(isd[46],(DWORD)&RegOpenKeyTransactedWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[46], (void*)ad[46], reinterpret_cast<void**>(&_Std_ROKTW));
     if (adr_Reester_Func[47] != 0)
-        assigningNewAddress(isd[47],(DWORD)&RegQueryInfoKeyAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[47], (void*)ad[47], reinterpret_cast<void**>(&_Std_RQIKA));
     if (adr_Reester_Func[48] != 0)
-        assigningNewAddress(isd[48],(DWORD)&RegQueryInfoKeyWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[48], (void*)ad[48], reinterpret_cast<void**>(&_Std_RQIKW));
     if (adr_Reester_Func[49] != 0)
-        assigningNewAddress(isd[49],(DWORD)&RegQueryValueAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[49], (void*)ad[49], reinterpret_cast<void**>(&_Std_RQVA));
     if (adr_Reester_Func[50] != 0)
-        assigningNewAddress(isd[50],(DWORD)&RegQueryValueWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[50], (void*)ad[50], reinterpret_cast<void**>(&_Std_RQVW));
     if (adr_Reester_Func[51] != 0)
-        assigningNewAddress(isd[51],(DWORD)&RegQueryMultipleValuesAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[51], (void*)ad[51], reinterpret_cast<void**>(&_Std_RQMVA));
     if (adr_Reester_Func[52] != 0)
-        assigningNewAddress(isd[52],(DWORD)&RegQueryMultipleValuesWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[52], (void*)ad[52], reinterpret_cast<void**>(&_Std_RQMVW));
     if (adr_Reester_Func[53] != 0)
-        assigningNewAddress(isd[53],(DWORD)&RegQueryValueExAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[53], (void*)ad[53], reinterpret_cast<void**>(&_Std_RQVEA));
     if (adr_Reester_Func[54] != 0)
-        assigningNewAddress(isd[54],(DWORD)&RegQueryValueExWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[54], (void*)ad[54], reinterpret_cast<void**>(&_Std_RQVEW));
     if (adr_Reester_Func[55] != 0)
-        assigningNewAddress(isd[55],(DWORD)&RegReplaceKeyAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[55], (void*)ad[55], reinterpret_cast<void**>(&_Std_RRKA));
     if (adr_Reester_Func[56] != 0)
-        assigningNewAddress(isd[56],(DWORD)&RegReplaceKeyWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[56], (void*)ad[56], reinterpret_cast<void**>(&_Std_RRKW));
     if (adr_Reester_Func[57] != 0)
-        assigningNewAddress(isd[57],(DWORD)&RegRestoreKeyAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[57], (void*)ad[57], reinterpret_cast<void**>(&_Std_RRKAI));
     if (adr_Reester_Func[58] != 0)
-        assigningNewAddress(isd[58],(DWORD)&RegRestoreKeyWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[58], (void*)ad[58], reinterpret_cast<void**>(&_Std_RRKWI));
     if (adr_Reester_Func[59] != 0)
-        assigningNewAddress(isd[59],(DWORD)&RegRenameKeyInt);
+        Detours::HookFunction((void*)adr_Reester_Func[59], (void*)ad[59], reinterpret_cast<void**>(&_Std_RRK));
     if (adr_Reester_Func[60] != 0)
-        assigningNewAddress(isd[60],(DWORD)&RegSaveKeyAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[60], (void*)ad[60], reinterpret_cast<void**>(&_Std_RSKA));
     if (adr_Reester_Func[61] != 0)
-        assigningNewAddress(isd[61],(DWORD)&RegSaveKeyWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[61], (void*)ad[61], reinterpret_cast<void**>(&_Std_RSKW));
     if (adr_Reester_Func[62] != 0)
-        assigningNewAddress(isd[62],(DWORD)&RegSetKeySecurityInt);
+        Detours::HookFunction((void*)adr_Reester_Func[62], (void*)ad[62], reinterpret_cast<void**>(&_Std_RSKS));
     if (adr_Reester_Func[63] != 0)
-        assigningNewAddress(isd[63],(DWORD)&RegSetValueAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[63], (void*)ad[63], reinterpret_cast<void**>(&_Std_RSVA));
     if (adr_Reester_Func[64] != 0)
-        assigningNewAddress(isd[64],(DWORD)&RegSetValueWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[64], (void*)ad[64], reinterpret_cast<void**>(&_Std_RSVW));
     if (adr_Reester_Func[65] != 0)
-        assigningNewAddress(isd[65],(DWORD)&RegSetValueExAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[65], (void*)ad[65], reinterpret_cast<void**>(&_Std_RSVEA));
     if (adr_Reester_Func[66] != 0)
-        assigningNewAddress(isd[66],(DWORD)&RegSetValueExWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[66], (void*)ad[66], reinterpret_cast<void**>(&_Std_RSVEW));
     if (adr_Reester_Func[67] != 0)
-        assigningNewAddress(isd[67],(DWORD)&RegUnLoadKeyAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[67], (void*)ad[67], reinterpret_cast<void**>(&_Std_RULKA));
     if (adr_Reester_Func[68] != 0)
-        assigningNewAddress(isd[68],(DWORD)&RegUnLoadKeyWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[68], (void*)ad[68], reinterpret_cast<void**>(&_Std_RULKW));
     if (adr_Reester_Func[69] != 0)
-        assigningNewAddress(isd[69],(DWORD)&RegDeleteKeyValueAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[69], (void*)ad[69], reinterpret_cast<void**>(&_Std_RDKVA));
     if (adr_Reester_Func[70] != 0)
-        assigningNewAddress(isd[70],(DWORD)&RegDeleteKeyValueWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[70], (void*)ad[70], reinterpret_cast<void**>(&_Std_RDKVW));
     if (adr_Reester_Func[71] != 0)
-        assigningNewAddress(isd[71],(DWORD)&RegSetKeyValueAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[71], (void*)ad[71], reinterpret_cast<void**>(&_Std_RSKVA));
     if (adr_Reester_Func[72] != 0)
-        assigningNewAddress(isd[72],(DWORD)&RegSetKeyValueWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[72], (void*)ad[72], reinterpret_cast<void**>(&_Std_RSKVW));
     if (adr_Reester_Func[73] != 0)
-        assigningNewAddress(isd[73],(DWORD)&RegDeleteTreeAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[73], (void*)ad[73], reinterpret_cast<void**>(&_Std_RDTA));
     if (adr_Reester_Func[74] != 0)
-        assigningNewAddress(isd[74],(DWORD)&RegDeleteTreeWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[74], (void*)ad[74], reinterpret_cast<void**>(&_Std_RDTW));
     if (adr_Reester_Func[75] != 0)
-        assigningNewAddress(isd[75],(DWORD)&RegGetValueAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[75], (void*)ad[75], reinterpret_cast<void**>(&_Std_RGVA));
     if (adr_Reester_Func[76] != 0)
-        assigningNewAddress(isd[76],(DWORD)&RegGetValueWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[76], (void*)ad[76], reinterpret_cast<void**>(&_Std_RGVW));
     if (adr_Reester_Func[77] != 0)
-        assigningNewAddress(isd[77],(DWORD)&RegLoadMUIStringAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[77], (void*)ad[77], reinterpret_cast<void**>(&_Std_RLMSA));
     if (adr_Reester_Func[78] != 0)
-        assigningNewAddress(isd[78],(DWORD)&RegLoadMUIStringWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[78], (void*)ad[78], reinterpret_cast<void**>(&_Std_RLMSW));
     if (adr_Reester_Func[79] != 0)
-        assigningNewAddress(isd[79],(DWORD)&RegLoadAppKeyAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[79], (void*)ad[79], reinterpret_cast<void**>(&_Std_RLAKA));
     if (adr_Reester_Func[80] != 0)
-        assigningNewAddress(isd[80],(DWORD)&RegLoadAppKeyWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[80], (void*)ad[80], reinterpret_cast<void**>(&_Std_RLAKW));
     if (adr_Reester_Func[81] != 0)
-        assigningNewAddress(isd[81],(DWORD)&RegDisablePredefinedCacheInt);
+        Detours::HookFunction((void*)adr_Reester_Func[81], (void*)ad[81], reinterpret_cast<void**>(&_Std_RDPC));
     if (adr_Reester_Func[82] != 0)
-        assigningNewAddress(isd[82],(DWORD)&RegDisablePredefinedCacheExInt);
+        Detours::HookFunction((void*)adr_Reester_Func[82], (void*)ad[82], reinterpret_cast<void**>(&_Std_RDPCE));
     if (adr_Reester_Func[83] != 0)
-        assigningNewAddress(isd[83],(DWORD)&RegOverridePredefKeyInt);
+        Detours::HookFunction((void*)adr_Reester_Func[83], (void*)ad[83], reinterpret_cast<void**>(&_Std_ROPK));
     if (adr_Reester_Func[84] != 0)
-        assigningNewAddress(isd[84],(DWORD)&RegOpenUserClassesRootInt);
+        Detours::HookFunction((void*)adr_Reester_Func[84], (void*)ad[84], reinterpret_cast<void**>(&_Std_ROUCR));
     if (adr_Reester_Func[85] != 0)
-        assigningNewAddress(isd[85],(DWORD)&RegOpenCurrentUserInt);
+        Detours::HookFunction((void*)adr_Reester_Func[85], (void*)ad[85], reinterpret_cast<void**>(&_Std_ROCU));
     if (adr_Reester_Func[86] != 0)
-        assigningNewAddress(isd[86],(DWORD)&RegConnectRegistryExAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[86], (void*)ad[86], reinterpret_cast<void**>(&_Std_RCREA));
     if (adr_Reester_Func[87] != 0)
-        assigningNewAddress(isd[87],(DWORD)&RegConnectRegistryExWInt);
+        Detours::HookFunction((void*)adr_Reester_Func[87], (void*)ad[87], reinterpret_cast<void**>(&_Std_RCREW));
     if (adr_Reester_Func[88] != 0)
-        assigningNewAddress(isd[88],(DWORD)&CheckForHiberbootInt);
+        Detours::HookFunction((void*)adr_Reester_Func[88], (void*)ad[88], reinterpret_cast<void**>(&_Std_CFH));
     if (adr_Reester_Func[89] != 0)
-        assigningNewAddress(isd[89],(DWORD)&RegSaveKeyExAInt);
+        Detours::HookFunction((void*)adr_Reester_Func[89], (void*)ad[89], reinterpret_cast<void**>(&_Std_RSKEA));
     if (adr_Reester_Func[90] != 0)
-        assigningNewAddress(isd[90],(DWORD)&RegSaveKeyExWInt);
-    return;
- 
+        Detours::HookFunction((void*)adr_Reester_Func[90], (void*)ad[90], reinterpret_cast<void**>(&_Std_RSKEW));
 }
 
 BOOL APIENTRY AbortSystemShutdownAInt(_In_opt_ LPSTR lpMachineName) {
@@ -330,63 +230,55 @@ DWORD APIENTRY InitiateShutdownWInt(_In_opt_ LPWSTR lpMachineName, _In_opt_ LPWS
 
 BOOL APIENTRY InitiateSystemShutdownAInt(_In_opt_ LPSTR lpMachineName, _In_opt_ LPSTR lpMessage, _In_ DWORD dwTimeout, _In_ BOOL bForceAppsClosed, _In_ BOOL bRebootAfterShutdown) {
     WriteInfoInFile("InitiateSystemShutdownA : ", lpMessage);
-    auto res = ((BOOL(__stdcall*)(LPSTR, LPSTR, DWORD, BOOL, BOOL))adr_Reester_Func[4])(lpMachineName, lpMessage, dwTimeout, bForceAppsClosed, bRebootAfterShutdown);
-    return res;
+    return _Std_ISSA(lpMachineName, lpMessage, dwTimeout, bForceAppsClosed, bRebootAfterShutdown);
 }
 
 BOOL APIENTRY InitiateSystemShutdownExAInt(_In_opt_ LPSTR lpMachineName, _In_opt_ LPSTR lpMessage, _In_ DWORD dwTimeout, _In_ BOOL bForceAppsClosed, _In_ BOOL bRebootAfterShutdown, _In_ DWORD dwReason) {
     WriteInfoInFile("InitiateSystemShutdownW : ", lpMessage);
-    auto res = ((BOOL(__stdcall*)(LPSTR, LPSTR, DWORD, BOOL, BOOL, DWORD))adr_Reester_Func[5])(lpMachineName, lpMessage, dwTimeout, bForceAppsClosed, bRebootAfterShutdown, dwReason);
-    return res;
+    return _Std_ISSEA(lpMachineName, lpMessage, dwTimeout, bForceAppsClosed, bRebootAfterShutdown, dwReason);
+ 
 }
 
 BOOL APIENTRY InitiateSystemShutdownExWInt(_In_opt_ LPWSTR lpMachineName, _In_opt_ LPWSTR lpMessage, _In_ DWORD dwTimeout, _In_ BOOL bForceAppsClosed, _In_ BOOL bRebootAfterShutdown, _In_ DWORD dwReason) {
     WriteInfoInFile("InitiateSystemShutdownW : ", lpMessage);
-    auto res = ((BOOL(__stdcall*)(LPWSTR, LPWSTR, DWORD, BOOL, BOOL, DWORD))adr_Reester_Func[6])(lpMachineName, lpMessage, dwTimeout, bForceAppsClosed, bRebootAfterShutdown, dwReason);
-    return res;
+    return _Std_ISSEW(lpMachineName, lpMessage, dwTimeout, bForceAppsClosed, bRebootAfterShutdown, dwReason);
 }
 
 BOOL APIENTRY InitiateSystemShutdownWInt(_In_opt_ LPWSTR lpMachineName, _In_opt_ LPWSTR lpMessage, _In_ DWORD dwTimeout, _In_ BOOL bForceAppsClosed, _In_ BOOL bRebootAfterShutdown) {
     WriteInfoInFile("InitiateSystemShutdownW : ", lpMessage);
-    auto res = ((BOOL(__stdcall*)(LPWSTR, LPWSTR, DWORD, BOOL, BOOL))adr_Reester_Func[7])(lpMachineName, lpMessage, dwTimeout, bForceAppsClosed, bRebootAfterShutdown);
-    return res;
+    return _Std_ISSW(lpMachineName, lpMessage, dwTimeout, bForceAppsClosed, bRebootAfterShutdown);
 }
 
 LSTATUS APIENTRY RegCloseKeyInt(_In_ HKEY hKey) {
 
     WriteInfoInFile("Close key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY ))adr_Reester_Func[8])(hKey);
-    return res;
+    return _Std_RCK(hKey);
 }
 
 LSTATUS APIENTRY RegConnectRegistryAInt(_In_opt_ LPCSTR lpMachineName, _In_ HKEY hKey, _Out_ PHKEY phkResult) {
     WriteInfoInFile("Connect key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(LPCSTR, HKEY, PHKEY))adr_Reester_Func[9])(lpMachineName,hKey, phkResult);
-    return res;
+    return _Std_RCRA(lpMachineName,hKey, phkResult);
 }
 
 LSTATUS APIENTRY RegConnectRegistryWInt(_In_opt_ LPCWSTR lpMachineName, _In_ HKEY hKey, _Out_ PHKEY phkResult) {
     WriteInfoInFile("Connect key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(LPCWSTR, HKEY, PHKEY))adr_Reester_Func[10])(lpMachineName, hKey, phkResult);
-    return res;
+    return _Std_RCRW(lpMachineName, hKey, phkResult);
 }
 
 LSTATUS APIENTRY RegCopyTreeAInt(_In_  HKEY   hKeySrc, _In_opt_  LPCSTR  lpSubKey, _In_   HKEY   hKeyDest) {
     WriteInfoInFile("Copy key: ", hKeySrc);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, HKEY))adr_Reester_Func[11])(hKeySrc, lpSubKey, hKeyDest);
-    return res;
+    return _Std_RCTA(hKeySrc, lpSubKey, hKeyDest);
 }
 
 LSTATUS APIENTRY RegCopyTreeWInt(_In_  HKEY  hKeySrc, _In_opt_   LPCWSTR  lpSubKey, _In_    HKEY     hKeyDest) {
     WriteInfoInFile("Copy key: ", hKeySrc);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, HKEY))adr_Reester_Func[12])(hKeySrc, lpSubKey, hKeyDest);
-    return res;
+    return _Std_RCTW(hKeySrc, lpSubKey, hKeyDest);
 }
 
 LSTATUS APIENTRY RegCreateKeyAInt(_In_ HKEY hKey, _In_opt_ LPCSTR lpSubKey, _Out_ PHKEY phkResult) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, PHKEY))adr_Reester_Func[13])(hKey, lpSubKey, phkResult);
-    return res;
+    return _Std_RCKA(hKey, lpSubKey, phkResult);
+
 }
 
 LSTATUS APIENTRY RegCreateKeyExAInt(
@@ -401,8 +293,7 @@ LSTATUS APIENTRY RegCreateKeyExAInt(
     _Out_opt_ LPDWORD lpdwDisposition
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, DWORD, LPSTR, DWORD, REGSAM, LPSECURITY_ATTRIBUTES,  PHKEY, LPDWORD))adr_Reester_Func[14])(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
-    return res;
+    return _Std_RCKEA(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
 }
 
 LSTATUS APIENTRY RegCreateKeyExWInt(
@@ -417,8 +308,7 @@ LSTATUS APIENTRY RegCreateKeyExWInt(
     _Out_opt_ LPDWORD lpdwDisposition
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, DWORD, LPWSTR, DWORD, REGSAM, LPSECURITY_ATTRIBUTES, PHKEY, LPDWORD))adr_Reester_Func[15])(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
-    return res;
+    return _Std_RCKEW(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
 }
 
 LSTATUS
@@ -437,8 +327,7 @@ RegCreateKeyTransactedAInt(
     _Reserved_ PVOID  pExtendedParemeter
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, DWORD, LPSTR, DWORD, REGSAM, LPSECURITY_ATTRIBUTES, PHKEY, LPDWORD, HANDLE, PVOID))adr_Reester_Func[16])(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition, hTransaction, pExtendedParemeter);
-    return res;
+    return _Std_RCKTA(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition, hTransaction, pExtendedParemeter);
 }
 
 LSTATUS
@@ -457,14 +346,12 @@ RegCreateKeyTransactedWInt(
     _Reserved_ PVOID  pExtendedParemeter
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, DWORD, LPWSTR, DWORD, REGSAM, LPSECURITY_ATTRIBUTES, PHKEY, LPDWORD, HANDLE, PVOID))adr_Reester_Func[17])(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition, hTransaction, pExtendedParemeter);
-    return res;
+    return _Std_RCKTW(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition, hTransaction, pExtendedParemeter);
 }
 
 LSTATUS APIENTRY RegCreateKeyWInt(_In_ HKEY hKey, _In_opt_ LPCWSTR lpSubKey, _Out_ PHKEY phkResult) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, PHKEY))adr_Reester_Func[18])(hKey, lpSubKey, phkResult);
-    return res;
+    return _Std_RCKW(hKey, lpSubKey, phkResult);
 }
 
 LSTATUS
@@ -474,8 +361,7 @@ RegDeleteKeyAInt(
     _In_ LPCSTR lpSubKey
 ) {
 WriteInfoInFile("Delete key: ", hKey);
-auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR))adr_Reester_Func[19])(hKey, lpSubKey);
-return res;
+return _Std_RDKA(hKey, lpSubKey);
 }
 
 LSTATUS
@@ -485,8 +371,7 @@ RegDeleteKeyWInt(
     _In_ LPCWSTR lpSubKey
 ) {
 WriteInfoInFile("Delete key: ", hKey);
-auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR))adr_Reester_Func[20])(hKey, lpSubKey);
-return res;
+return _Std_RDKW(hKey, lpSubKey);
 }
 
 LSTATUS
@@ -498,8 +383,7 @@ RegDeleteKeyExAInt(
     _Reserved_ DWORD Reserved
 ){
     WriteInfoInFile("Delete key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, REGSAM, DWORD))adr_Reester_Func[21])(hKey, lpSubKey, samDesired, Reserved);
-    return res;
+    return _Std_RDKEA(hKey, lpSubKey, samDesired, Reserved);
 }
 
 LSTATUS
@@ -511,8 +395,7 @@ RegDeleteKeyExWInt(
     _Reserved_ DWORD Reserved
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, REGSAM, DWORD))adr_Reester_Func[22])(hKey, lpSubKey, samDesired, Reserved);
-    return res;
+    return _Std_RDKEW(hKey, lpSubKey, samDesired, Reserved);
 }
 
 LSTATUS
@@ -526,8 +409,7 @@ RegDeleteKeyTransactedAInt(
     _Reserved_ PVOID  pExtendedParameter
 ) {
     WriteInfoInFile("Delete key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, REGSAM, DWORD, HANDLE, PVOID))adr_Reester_Func[23])(hKey, lpSubKey, samDesired, Reserved, hTransaction, pExtendedParameter);
-    return res;
+    return _Std_RDKTA(hKey, lpSubKey, samDesired, Reserved, hTransaction, pExtendedParameter);
 }
 LSTATUS
 APIENTRY
@@ -540,8 +422,7 @@ RegDeleteKeyTransactedWInt(
     _Reserved_ PVOID  pExtendedParameter
 ) {
     WriteInfoInFile("Delete key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, REGSAM, DWORD, HANDLE, PVOID))adr_Reester_Func[24])(hKey, lpSubKey, samDesired, Reserved, hTransaction, pExtendedParameter);
-    return res;
+    return _Std_RDKTW(hKey, lpSubKey, samDesired, Reserved, hTransaction, pExtendedParameter);
 }
 LONG
 APIENTRY
@@ -549,8 +430,7 @@ RegDisableReflectionKeyInt(
     _In_ HKEY hBase
 ) {
     WriteInfoInFile("Disable key: ", hBase);
-    auto res = ((LONG(__stdcall*)(HKEY))adr_Reester_Func[25])(hBase);
-    return res;
+    return _Std_RDRK(hBase);
 }
 LONG
 APIENTRY
@@ -558,8 +438,7 @@ RegEnableReflectionKeyInt(
     _In_ HKEY hBase
 ) {
     WriteInfoInFile("Create key: ", hBase);
-    auto res = ((LONG(__stdcall*)(HKEY))adr_Reester_Func[26])(hBase);
-    return res;
+     return _Std_RERK(hBase);
 }
 LONG
 APIENTRY
@@ -568,8 +447,8 @@ RegQueryReflectionKeyInt(
     _Out_ BOOL* bIsReflectionDisabled
 ) {
     WriteInfoInFile("Create key: ", hBase);
-    auto res = ((LONG(__stdcall*)(HKEY, BOOL*))adr_Reester_Func[27])(hBase, bIsReflectionDisabled);
-    return res;
+    return _Std_RQRK(hBase, bIsReflectionDisabled);
+
 }
 LSTATUS
 APIENTRY
@@ -578,8 +457,7 @@ RegDeleteValueAInt(
     _In_opt_ LPCSTR lpValueName
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR))adr_Reester_Func[28])(hKey, lpValueName);
-    return res;
+    return _Std_RDVA(hKey, lpValueName);
 }
 LSTATUS
 APIENTRY
@@ -588,8 +466,7 @@ RegDeleteValueWInt(
     _In_opt_ LPCWSTR lpValueName
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR))adr_Reester_Func[29])(hKey, lpValueName);
-    return res;
+    return _Std_RDVW(hKey, lpValueName);
 }
 LSTATUS
 APIENTRY
@@ -600,8 +477,7 @@ RegEnumKeyAInt(
     _In_ DWORD cchName
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, DWORD, LPSTR, DWORD))adr_Reester_Func[30])(hKey, dwIndex, lpName, cchName);
-    return res;
+    return _Std_REKA(hKey, dwIndex, lpName, cchName);
 }
 LSTATUS
 APIENTRY
@@ -612,8 +488,7 @@ RegEnumKeyWInt(
     _In_ DWORD cchName
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, DWORD, LPWSTR, DWORD))adr_Reester_Func[31])(hKey, dwIndex, lpName, cchName);
-    return res;
+    return _Std_REKW(hKey, dwIndex, lpName, cchName);
 }
 LSTATUS
 APIENTRY
@@ -628,8 +503,7 @@ RegEnumKeyExAInt(
     _Out_opt_ PFILETIME lpftLastWriteTime
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, DWORD, LPSTR, LPDWORD, LPDWORD, LPSTR, LPDWORD, PFILETIME))adr_Reester_Func[32])(hKey, dwIndex, lpName, lpcchName, lpReserved, lpClass, lpcchClass, lpftLastWriteTime);
-    return res;
+    return _Std_REKEA(hKey, dwIndex, lpName, lpcchName, lpReserved, lpClass, lpcchClass, lpftLastWriteTime);
 }
 LSTATUS
 APIENTRY
@@ -644,8 +518,7 @@ RegEnumKeyExWInt(
     _Out_opt_ PFILETIME lpftLastWriteTime
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, DWORD, LPWSTR, LPDWORD, LPDWORD, LPWSTR, LPDWORD, PFILETIME))adr_Reester_Func[33])(hKey, dwIndex, lpName, lpcchName, lpReserved, lpClass, lpcchClass, lpftLastWriteTime);
-    return res;
+    return _Std_REKEW(hKey, dwIndex, lpName, lpcchName, lpReserved, lpClass, lpcchClass, lpftLastWriteTime);
 }
 LSTATUS
 APIENTRY
@@ -660,8 +533,8 @@ RegEnumValueAInt(
     _Inout_opt_ LPDWORD lpcbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, DWORD, LPSTR, LPDWORD, LPDWORD, LPDWORD, LPBYTE, LPDWORD))adr_Reester_Func[34])(hKey, dwIndex, lpValueName, lpcchValueName, lpReserved, lpType, lpData, lpcbData);
-    return res;
+   return _Std_REVA(hKey, dwIndex, lpValueName, lpcchValueName, lpReserved, lpType, lpData, lpcbData);
+
 }
 LSTATUS
 APIENTRY
@@ -676,8 +549,7 @@ RegEnumValueWInt(
     _Inout_opt_ LPDWORD lpcbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, DWORD, LPWSTR, LPDWORD, LPDWORD, LPDWORD, LPBYTE, LPDWORD))adr_Reester_Func[35])(hKey, dwIndex, lpValueName, lpcchValueName, lpReserved, lpType, lpData, lpcbData);
-    return res;
+    return _Std_REVW(hKey, dwIndex, lpValueName, lpcchValueName, lpReserved, lpType, lpData, lpcbData);
 }
 LSTATUS
 APIENTRY
@@ -685,8 +557,7 @@ RegFlushKeyInt(
     _In_ HKEY hKey
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY))adr_Reester_Func[36])(hKey);
-    return res;
+    return _Std_RFK(hKey);
 }
 LSTATUS
 APIENTRY
@@ -697,8 +568,8 @@ RegGetKeySecurityInt(
     _Inout_ LPDWORD lpcbSecurityDescriptor
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, SECURITY_INFORMATION, PSECURITY_DESCRIPTOR, LPDWORD))adr_Reester_Func[37])(hKey, SecurityInformation, pSecurityDescriptor, lpcbSecurityDescriptor);
-    return res;
+    return _Std_RGKS(hKey, SecurityInformation, pSecurityDescriptor, lpcbSecurityDescriptor);
+  
 }
 LSTATUS
 APIENTRY
@@ -708,8 +579,7 @@ RegLoadKeyAInt(
     _In_ LPCSTR lpFile
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, LPCSTR))adr_Reester_Func[38])(hKey, lpSubKey, lpFile);
-    return res;
+    return _Std_RLKA(hKey, lpSubKey, lpFile);
 }
 LSTATUS
 APIENTRY
@@ -719,8 +589,8 @@ RegLoadKeyWInt(
     _In_ LPCWSTR lpFile
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, LPCWSTR))adr_Reester_Func[39])(hKey, lpSubKey, lpFile);
-    return res;
+    return _Std_RLKW(hKey, lpSubKey, lpFile);
+
 }
 LSTATUS
 APIENTRY
@@ -732,8 +602,7 @@ RegNotifyChangeKeyValueInt(
     _In_ BOOL fAsynchronous
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, BOOL, DWORD, HANDLE, BOOL))adr_Reester_Func[40])(hKey, bWatchSubtree, dwNotifyFilter, hEvent, fAsynchronous);
-    return res;
+    return _Std_RNCKV(hKey, bWatchSubtree, dwNotifyFilter, hEvent, fAsynchronous);
 }
 LSTATUS
 APIENTRY
@@ -753,7 +622,6 @@ RegOpenKeyWInt(
     _Out_ PHKEY phkResult
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, PHKEY))adr_Reester_Func[42])(hKey, lpSubKey, phkResult);
     return _Std_ROKW(hKey, lpSubKey, phkResult);
 }
 LSTATUS
@@ -765,10 +633,8 @@ RegOpenKeyExAInt(
     _In_ REGSAM samDesired,
     _Out_ PHKEY phkResult
 ) {
-    std::cout << "Call function" << std::endl;
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, DWORD, REGSAM, PHKEY))adr_Reester_Func[43])(hKey, lpSubKey, ulOptions, samDesired, phkResult);
-    return res;
+    return _Std_ROKEA(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 }
 LSTATUS
 APIENTRY
@@ -779,9 +645,8 @@ RegOpenKeyExWInt(
     _In_ REGSAM samDesired,
     _Out_ PHKEY phkResult
 ) {
-    std::cout << "Call function" << std::endl;
     WriteInfoInFile("Create key: ", hKey);
-    return _Std_ROREW(hKey, lpSubKey, ulOptions, samDesired, phkResult);
+    return _Std_ROKEW(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 }
 LSTATUS
 APIENTRY
@@ -795,8 +660,7 @@ RegOpenKeyTransactedAInt(
     _Reserved_ PVOID  pExtendedParemeter
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, DWORD, REGSAM, PHKEY, HANDLE, PVOID))adr_Reester_Func[45])(hKey, lpSubKey, ulOptions, samDesired,phkResult, hTransaction, pExtendedParemeter);
-    return res;
+    return _Std_ROKTA(hKey, lpSubKey, ulOptions, samDesired,phkResult, hTransaction, pExtendedParemeter);
 }
 LSTATUS
 APIENTRY
@@ -810,8 +674,7 @@ RegOpenKeyTransactedWInt(
     _Reserved_ PVOID  pExtendedParemeter
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, DWORD, REGSAM, PHKEY, HANDLE, PVOID))adr_Reester_Func[46])(hKey, lpSubKey, ulOptions, samDesired, phkResult, hTransaction, pExtendedParemeter);
-    return res;
+    return _Std_ROKTW(hKey, lpSubKey, ulOptions, samDesired, phkResult, hTransaction, pExtendedParemeter);
 }
 LSTATUS
 APIENTRY
@@ -830,8 +693,8 @@ RegQueryInfoKeyAInt(
     _Out_opt_ PFILETIME lpftLastWriteTime
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPSTR, LPDWORD, LPDWORD, LPDWORD, LPDWORD, LPDWORD, LPDWORD, LPDWORD, LPDWORD, LPDWORD, PFILETIME))adr_Reester_Func[47])(hKey, lpClass, lpcchClass, lpReserved, lpcSubKeys, lpcbMaxSubKeyLen, lpcbMaxClassLen, lpcValues, lpcbMaxValueNameLen, lpcbMaxValueLen, lpcbSecurityDescriptor, lpftLastWriteTime);
-    return res;
+    return _Std_RQIKA(hKey, lpClass, lpcchClass, lpReserved, lpcSubKeys, lpcbMaxSubKeyLen, lpcbMaxClassLen, lpcValues, lpcbMaxValueNameLen, lpcbMaxValueLen, lpcbSecurityDescriptor, lpftLastWriteTime);
+   
 }
 LSTATUS
 APIENTRY
@@ -850,8 +713,7 @@ RegQueryInfoKeyWInt(
     _Out_opt_ PFILETIME lpftLastWriteTime
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPWSTR, LPDWORD, LPDWORD, LPDWORD, LPDWORD, LPDWORD, LPDWORD, LPDWORD, LPDWORD, LPDWORD, PFILETIME))adr_Reester_Func[48])(hKey, lpClass, lpcchClass, lpReserved, lpcSubKeys, lpcbMaxSubKeyLen, lpcbMaxClassLen, lpcValues, lpcbMaxValueNameLen, lpcbMaxValueLen, lpcbSecurityDescriptor, lpftLastWriteTime);
-    return res;
+    return _Std_RQIKW(hKey, lpClass, lpcchClass, lpReserved, lpcSubKeys, lpcbMaxSubKeyLen, lpcbMaxClassLen, lpcValues, lpcbMaxValueNameLen, lpcbMaxValueLen, lpcbSecurityDescriptor, lpftLastWriteTime);
 }
 LSTATUS
 APIENTRY
@@ -862,8 +724,7 @@ RegQueryValueAInt(
     _Inout_opt_ PLONG lpcbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, LPSTR, PLONG))adr_Reester_Func[49])(hKey, lpSubKey, lpData, lpcbData);
-    return res;
+    return _Std_RQVA(hKey, lpSubKey, lpData, lpcbData);
 }
 LSTATUS
 APIENTRY
@@ -874,8 +735,7 @@ RegQueryValueWInt(
     _Inout_opt_ PLONG lpcbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, LPWSTR, PLONG))adr_Reester_Func[50])(hKey, lpSubKey, lpData, lpcbData);
-    return res;
+    return _Std_RQVW(hKey, lpSubKey, lpData, lpcbData);
 }
 LSTATUS
 APIENTRY
@@ -887,8 +747,7 @@ RegQueryMultipleValuesAInt(
     _Inout_opt_ LPDWORD ldwTotsize
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, PVALENTA, DWORD, LPSTR, LPDWORD))adr_Reester_Func[51])(hKey, val_list,num_vals, lpValueBuf, ldwTotsize);
-    return res;
+    return _Std_RQMVA(hKey, val_list,num_vals, lpValueBuf, ldwTotsize);
 }
 LSTATUS
 APIENTRY
@@ -900,8 +759,7 @@ RegQueryMultipleValuesWInt(
     _Inout_opt_ LPDWORD ldwTotsize
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, PVALENTW, DWORD, LPWSTR, LPDWORD))adr_Reester_Func[52])(hKey, val_list, num_vals, lpValueBuf, ldwTotsize);
-    return res;
+    return _Std_RQMVW(hKey, val_list, num_vals, lpValueBuf, ldwTotsize);
 }
 LSTATUS
 APIENTRY
@@ -914,8 +772,7 @@ RegQueryValueExAInt(
     _When_(lpData == NULL, _Out_opt_) _When_(lpData != NULL, _Inout_opt_) LPDWORD lpcbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, LPDWORD, LPDWORD, LPBYTE, LPDWORD))adr_Reester_Func[53])(hKey, lpValueName, lpReserved, lpType, lpData, lpcbData);
-    return res;
+    return _Std_RQVEA(hKey, lpValueName, lpReserved, lpType, lpData, lpcbData);
 }
 LSTATUS
 APIENTRY
@@ -928,8 +785,7 @@ RegQueryValueExWInt(
     _When_(lpData == NULL, _Out_opt_) _When_(lpData != NULL, _Inout_opt_) LPDWORD lpcbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, LPDWORD, LPDWORD, LPBYTE, LPDWORD))adr_Reester_Func[54])(hKey, lpValueName, lpReserved, lpType, lpData, lpcbData);
-    return res;
+    return _Std_RQVEW(hKey, lpValueName, lpReserved, lpType, lpData, lpcbData);
 }
 LSTATUS
 APIENTRY
@@ -940,8 +796,7 @@ RegReplaceKeyAInt(
     _In_ LPCSTR lpOldFile
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, LPCSTR, LPCSTR))adr_Reester_Func[55])(hKey, lpSubKey, lpNewFile, lpOldFile);
-    return res;
+    return _Std_RRKA(hKey, lpSubKey, lpNewFile, lpOldFile);
 }
 LSTATUS
 APIENTRY
@@ -952,8 +807,7 @@ RegReplaceKeyWInt(
     _In_ LPCWSTR lpOldFile
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, LPCWSTR, LPCWSTR))adr_Reester_Func[56])(hKey, lpSubKey, lpNewFile, lpOldFile);
-    return res;
+    return _Std_RRKW(hKey, lpSubKey, lpNewFile, lpOldFile);
 }
 LSTATUS
 APIENTRY
@@ -963,8 +817,7 @@ RegRestoreKeyAInt(
     _In_ DWORD dwFlags
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, DWORD))adr_Reester_Func[57])(hKey, lpFile, dwFlags);
-    return res;
+    return _Std_RRKAI(hKey, lpFile, dwFlags);
 }
 LSTATUS
 APIENTRY
@@ -974,8 +827,7 @@ RegRestoreKeyWInt(
     _In_ DWORD dwFlags
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, DWORD))adr_Reester_Func[58])(hKey, lpFile, dwFlags);
-    return res;
+    return _Std_RRKWI(hKey, lpFile, dwFlags);
 }
 LSTATUS
 APIENTRY
@@ -985,8 +837,7 @@ RegRenameKeyInt(
     _In_ LPCWSTR lpNewKeyName
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, LPCWSTR))adr_Reester_Func[59])(hKey, lpSubKeyName, lpNewKeyName);
-    return res;
+    return _Std_RRK(hKey, lpSubKeyName, lpNewKeyName);
 }
 LSTATUS
 APIENTRY
@@ -996,8 +847,7 @@ RegSaveKeyAInt(
     _In_opt_ CONST LPSECURITY_ATTRIBUTES lpSecurityAttributes
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, LPSECURITY_ATTRIBUTES))adr_Reester_Func[60])(hKey, lpFile, lpSecurityAttributes);
-    return res;
+    return _Std_RSKA(hKey, lpFile, lpSecurityAttributes);
 }
 LSTATUS
 APIENTRY
@@ -1007,8 +857,7 @@ RegSaveKeyWInt(
     _In_opt_ CONST LPSECURITY_ATTRIBUTES lpSecurityAttributes
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, LPSECURITY_ATTRIBUTES))adr_Reester_Func[61])(hKey, lpFile, lpSecurityAttributes);
-    return res;
+    return _Std_RSKW(hKey, lpFile, lpSecurityAttributes);
 }
 LSTATUS
 APIENTRY
@@ -1018,8 +867,7 @@ RegSetKeySecurityInt(
     _In_ PSECURITY_DESCRIPTOR pSecurityDescriptor
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, SECURITY_INFORMATION, PSECURITY_DESCRIPTOR))adr_Reester_Func[62])(hKey, SecurityInformation, pSecurityDescriptor);
-    return res;
+    return _Std_RSKS(hKey, SecurityInformation, pSecurityDescriptor);
 }
 LSTATUS
 APIENTRY
@@ -1031,8 +879,7 @@ RegSetValueAInt(
     _In_ DWORD cbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, DWORD, LPCSTR, DWORD))adr_Reester_Func[63])(hKey, lpSubKey, dwType, lpData, cbData);
-    return res;
+    return _Std_RSVA(hKey, lpSubKey, dwType, lpData, cbData);
 }
 LSTATUS
 APIENTRY
@@ -1044,8 +891,7 @@ RegSetValueWInt(
     _In_ DWORD cbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, DWORD, LPCWSTR, DWORD))adr_Reester_Func[64])(hKey, lpSubKey, dwType, lpData, cbData);
-    return res;
+    return _Std_RSVW(hKey, lpSubKey, dwType, lpData, cbData);
 }
 LSTATUS
 APIENTRY
@@ -1058,8 +904,7 @@ RegSetValueExAInt(
     _In_ DWORD cbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)( HKEY, LPCSTR, DWORD, DWORD,const BYTE*, DWORD))adr_Reester_Func[65])(hKey, lpValueName, Reserved, dwType, lpData, cbData);
-    return res;
+    return _Std_RSVEA(hKey, lpValueName, Reserved, dwType, lpData, cbData);
 }
 LSTATUS
 APIENTRY
@@ -1072,8 +917,7 @@ RegSetValueExWInt(
     _In_ DWORD cbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, DWORD, DWORD, const BYTE*, DWORD))adr_Reester_Func[66])(hKey, lpValueName, Reserved, dwType, lpData, cbData);
-    return res;
+    return _Std_RSVEW(hKey, lpValueName, Reserved, dwType, lpData, cbData);
 }
 LSTATUS
 APIENTRY
@@ -1082,8 +926,7 @@ RegUnLoadKeyAInt(
     _In_opt_ LPCSTR lpSubKey
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR))adr_Reester_Func[67])(hKey, lpSubKey);
-    return res;
+    return _Std_RULKA(hKey, lpSubKey);
 }
 LSTATUS
 APIENTRY
@@ -1092,8 +935,7 @@ RegUnLoadKeyWInt(
     _In_opt_ LPCWSTR lpSubKey
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR))adr_Reester_Func[68])(hKey, lpSubKey);
-    return res;
+    return _Std_RULKW(hKey, lpSubKey);
 }
 LSTATUS
 APIENTRY
@@ -1103,8 +945,7 @@ RegDeleteKeyValueAInt(
     _In_opt_ LPCSTR lpValueName
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, LPCSTR))adr_Reester_Func[69])(hKey, lpSubKey, lpValueName);
-    return res;
+    return _Std_RDKVA(hKey, lpSubKey, lpValueName);
 }
 LSTATUS
 APIENTRY
@@ -1114,8 +955,7 @@ RegDeleteKeyValueWInt(
     _In_opt_ LPCWSTR lpValueName
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, LPCWSTR))adr_Reester_Func[70])(hKey, lpSubKey, lpValueName);
-    return res;
+    return _Std_RDKVW(hKey, lpSubKey, lpValueName);
 }
 LSTATUS
 APIENTRY
@@ -1128,8 +968,7 @@ RegSetKeyValueAInt(
     _In_ DWORD cbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, LPCSTR, DWORD, LPCVOID, DWORD))adr_Reester_Func[71])(hKey, lpSubKey, lpValueName, dwType, lpData, cbData);
-    return res;
+    return _Std_RSKVA(hKey, lpSubKey, lpValueName, dwType, lpData, cbData);
 }
 LSTATUS
 APIENTRY
@@ -1142,8 +981,7 @@ RegSetKeyValueWInt(
     _In_ DWORD cbData
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, LPCWSTR, DWORD, LPCVOID, DWORD))adr_Reester_Func[72])(hKey, lpSubKey, lpValueName, dwType, lpData, cbData);
-    return res;
+    return _Std_RSKVW(hKey, lpSubKey, lpValueName, dwType, lpData, cbData);
 }
 LSTATUS
 APIENTRY
@@ -1152,8 +990,7 @@ RegDeleteTreeAInt(
     _In_opt_ LPCSTR lpSubKey
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR))adr_Reester_Func[73])(hKey, lpSubKey);
-    return res;
+    return _Std_RDTA(hKey, lpSubKey);
 }
 LSTATUS
 APIENTRY
@@ -1162,8 +999,7 @@ RegDeleteTreeWInt(
     _In_opt_ LPCWSTR lpSubKey
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR))adr_Reester_Func[74])(hKey, lpSubKey);
-    return res;
+    return _Std_RDTW(hKey, lpSubKey);
 }
 LSTATUS
 APIENTRY
@@ -1184,8 +1020,7 @@ RegGetValueAInt(
     _Inout_opt_ LPDWORD pcbData
 ) {
     WriteInfoInFile("Create key: ", hkey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, LPCSTR, DWORD, LPDWORD, PVOID, LPDWORD))adr_Reester_Func[75])(hkey, lpSubKey, lpValue, dwFlags, pdwType, pvData, pcbData);
-    return res;
+    return _Std_RGVA(hkey, lpSubKey, lpValue, dwFlags, pdwType, pvData, pcbData);
 }
 LSTATUS
 APIENTRY
@@ -1206,8 +1041,7 @@ RegGetValueWInt(
     _Inout_opt_ LPDWORD pcbData
 ) {
     WriteInfoInFile("Create key: ", hkey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, LPCWSTR, DWORD, LPDWORD, PVOID, LPDWORD))adr_Reester_Func[76])(hkey, lpSubKey, lpValue, dwFlags, pdwType, pvData, pcbData);
-    return res;
+    return _Std_RGVW(hkey, lpSubKey, lpValue, dwFlags, pdwType, pvData, pcbData);
 }
 
 LSTATUS
@@ -1222,8 +1056,7 @@ RegLoadMUIStringAInt(
     _In_opt_ LPCSTR pszDirectory
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, LPSTR, DWORD, LPDWORD, DWORD, LPCSTR))adr_Reester_Func[77])(hKey, pszValue, pszOutBuf, cbOutBuf, pcbData, Flags, pszDirectory);
-    return res;
+    return _Std_RLMSA(hKey, pszValue, pszOutBuf, cbOutBuf, pcbData, Flags, pszDirectory);
 }
 LSTATUS
 APIENTRY
@@ -1237,8 +1070,7 @@ RegLoadMUIStringWInt(
     _In_opt_ LPCWSTR pszDirectory
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, LPCWSTR, DWORD, LPDWORD, DWORD, LPCWSTR))adr_Reester_Func[78])(hKey, pszValue, pszOutBuf, cbOutBuf, pcbData, Flags, pszDirectory);
-    return res;
+    return _Std_RLMSW(hKey, pszValue, pszOutBuf, cbOutBuf, pcbData, Flags, pszDirectory);
 }
 LSTATUS
 APIENTRY
@@ -1250,8 +1082,7 @@ RegLoadAppKeyAInt(
     _Reserved_ DWORD Reserved
 ) {
     WriteInfoInFile("Create key: ", lpFile);
-    auto res = ((LSTATUS(__stdcall*)(LPCSTR, PHKEY, REGSAM, DWORD, DWORD))adr_Reester_Func[79])(lpFile, phkResult, samDesired, dwOptions, Reserved);
-    return res;
+    return _Std_RLAKA(lpFile, phkResult, samDesired, dwOptions, Reserved);
 }
 LSTATUS
 APIENTRY
@@ -1263,8 +1094,7 @@ RegLoadAppKeyWInt(
     _Reserved_ DWORD Reserved
 ) {
     WriteInfoInFile("Create key: ", lpFile);
-    auto res = ((LSTATUS(__stdcall*)(LPCWSTR, PHKEY, REGSAM, DWORD, DWORD))adr_Reester_Func[80])(lpFile, phkResult, samDesired, dwOptions, Reserved);
-    return res;
+    return _Std_RLAKW(lpFile, phkResult, samDesired, dwOptions, Reserved);
 }
 
 
@@ -1273,9 +1103,8 @@ APIENTRY
 RegDisablePredefinedCacheExInt(
     VOID
 ){
-    WriteInfoInFile("Create key: ", "fdsfd");
-    auto res = ((LONG(__stdcall*)(VOID))adr_Reester_Func[81])();
-    return res;
+    WriteInfoInFile("Create key: ", " ");
+    return _Std_RDPCE();
 }
 
 
@@ -1285,9 +1114,8 @@ APIENTRY
 RegDisablePredefinedCacheInt(
     VOID
 ) {
-    WriteInfoInFile("Create key: ", "fsdfd");
-    auto res = ((LSTATUS(__stdcall*)(VOID))adr_Reester_Func[82])();
-    return res;
+    WriteInfoInFile("Create key: ", " ");
+    return _Std_RDPC();
 }
 
 LSTATUS
@@ -1297,8 +1125,7 @@ RegOverridePredefKeyInt(
     _In_opt_ HKEY hNewHKey
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(HKEY, HKEY))adr_Reester_Func[83])(hKey, hNewHKey);
-    return res;
+    return _Std_ROPK(hKey, hNewHKey);
 }
 
 
@@ -1312,9 +1139,8 @@ RegOpenUserClassesRootInt(
     _In_ REGSAM samDesired,
     _Out_ PHKEY phkResult
 ) {
-    WriteInfoInFile("Create key: ", "fsdf");
-    auto res = ((LSTATUS(__stdcall*)(HANDLE, DWORD, REGSAM, PHKEY))adr_Reester_Func[84])(hToken, dwOptions, samDesired, phkResult);
-    return res;
+    WriteInfoInFile("Create key: ", " ");
+    return _Std_ROUCR(hToken, dwOptions, samDesired, phkResult);
 }
 
 
@@ -1325,9 +1151,8 @@ RegOpenCurrentUserInt(
     _In_ REGSAM samDesired,
     _Out_ PHKEY phkResult
 ) {
-    WriteInfoInFile("Create key: ", "sda");
-    auto res = ((LSTATUS(__stdcall*)(REGSAM, PHKEY))adr_Reester_Func[85])(samDesired, phkResult);
-    return res;
+    WriteInfoInFile("Create key: ", " ");
+    return _Std_ROCU(samDesired, phkResult);
 }
 
 
@@ -1340,8 +1165,7 @@ RegConnectRegistryExAInt(
     _Out_ PHKEY phkResult
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(LPCSTR, HKEY, ULONG, PHKEY))adr_Reester_Func[86])(lpMachineName, hKey, Flags, phkResult);
-    return res;
+    return _Std_RCREA(lpMachineName, hKey, Flags, phkResult);
 }
 
 LSTATUS
@@ -1353,8 +1177,7 @@ RegConnectRegistryExWInt(
     _Out_ PHKEY phkResult
 ) {
     WriteInfoInFile("Create key: ", hKey);
-    auto res = ((LSTATUS(__stdcall*)(LPCWSTR, HKEY, ULONG, PHKEY))adr_Reester_Func[87])(lpMachineName, hKey, Flags, phkResult);
-    return res;
+    return _Std_RCREW(lpMachineName, hKey, Flags, phkResult);
 }
 
 
@@ -1365,8 +1188,7 @@ CheckForHiberbootInt(
     _In_ BOOLEAN bClearFlag
 ) {
     WriteInfoInFile("Create key: ", "asd");
-    auto res = ((LSTATUS(__stdcall*)(PBOOLEAN, BOOLEAN))adr_Reester_Func[88])(pHiberboot, bClearFlag);
-    return res;
+    return _Std_CFH(pHiberboot, bClearFlag);
 }
 
 
@@ -1379,8 +1201,7 @@ RegSaveKeyExAInt(
     _In_ DWORD Flags
 ) {
     WriteInfoInFile("Create key: ", "asd");
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCSTR, CONST LPSECURITY_ATTRIBUTES, DWORD))adr_Reester_Func[89])(hKey, lpFile, lpSecurityAttributes, Flags);
-    return res;
+    return _Std_RSKEA(hKey, lpFile, lpSecurityAttributes, Flags);
 }
 
 
@@ -1393,8 +1214,7 @@ RegSaveKeyExWInt(
     _In_ DWORD Flags
 ) {
     WriteInfoInFile("Create key: ", "asd");
-    auto res = ((LSTATUS(__stdcall*)(HKEY, LPCWSTR, CONST LPSECURITY_ATTRIBUTES, DWORD))adr_Reester_Func[90])(hKey, lpFile, lpSecurityAttributes, Flags);
-    return res;
+    return _Std_RSKEW(hKey, lpFile, lpSecurityAttributes, Flags);    
 }
 
 LPWSTR convertStr(LPCSTR pInStr)
@@ -1409,12 +1229,13 @@ LPWSTR convertStr(LPCSTR pInStr)
 	return LPWSTR(pwstr);
 }
 void WriteInfoInFile(const char* firstParam, char* discription) {
-
-    std::cout << firstParam << discription << std::endl;
     std::ofstream outFile(fileName, std::ios::app);
+    char* buf = new char[40];
+    auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    ctime_s(buf, 40, &t);
     if (outFile.is_open())
     {
-        outFile << firstParam << discription << std::endl;
+        outFile << buf << ": " << firstParam << " " << discription << std::endl;
     }
     else {
         std::cout << "Don't" << std::endl;
@@ -1423,11 +1244,13 @@ void WriteInfoInFile(const char* firstParam, char* discription) {
 
 }
 void WriteInfoInFile(const char* firstParam, LPWSTR discription) {
-    std::cout << firstParam << discription << std::endl;
     std::ofstream outFile(fileName, std::ios::app);
+    char* buf = new char[40];
+    auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    ctime_s(buf, 40, &t);
     if (outFile.is_open())
     {
-        outFile << firstParam << discription << std::endl;
+        outFile << buf << ": " << firstParam << " " << discription << std::endl;
     }
     else {
         std::cout << "Don't" << std::endl;
@@ -1436,11 +1259,13 @@ void WriteInfoInFile(const char* firstParam, LPWSTR discription) {
 
 }
 void WriteInfoInFile(const char* firstParam, HKEY discription) {
-    std::cout << firstParam << discription << std::endl;
     std::ofstream outFile(fileName, std::ios::app);
+    char* buf = new char[40];
+    auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    ctime_s(buf, 40, &t);
     if (outFile.is_open())
     {
-        outFile << firstParam << discription << std::endl;
+        outFile << buf << ": " << firstParam << " " << discription << std::endl;
     }
     else {
         std::cout << "Don't" << std::endl;
@@ -1449,11 +1274,13 @@ void WriteInfoInFile(const char* firstParam, HKEY discription) {
 
 }
 void WriteInfoInFile(const char* firstParam, LPCSTR discription) {
-    std::cout << firstParam << discription << std::endl;
     std::ofstream outFile(fileName, std::ios::app);
+    char* buf = new char[40];
+    auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    ctime_s(buf, 40, &t);
     if (outFile.is_open())
     {
-        outFile << firstParam << discription << std::endl;
+        outFile << buf << ": " << firstParam << " " << discription << std::endl;
     }
     else {
         std::cout << "Don't" << std::endl;
@@ -1462,11 +1289,13 @@ void WriteInfoInFile(const char* firstParam, LPCSTR discription) {
 
 }
 void WriteInfoInFile(const char* firstParam, LPCWSTR discription) {
-    std::cout << firstParam << discription << std::endl;
     std::ofstream outFile(fileName, std::ios::app);
+    char* buf = new char[40];
+    auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    ctime_s(buf, 40, &t);
     if (outFile.is_open())
     {
-        outFile << firstParam << discription << std::endl;
+        outFile  << buf << ": " <<  firstParam << " "<< discription << std::endl;
     }
     else {
         std::cout << "Don't" << std::endl;
